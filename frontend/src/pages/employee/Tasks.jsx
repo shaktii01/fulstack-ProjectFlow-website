@@ -5,6 +5,7 @@ import useAuthStore from '@/store/authStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select } from '@/components/ui/select';
+import RefreshButton from '@/components/ui/refresh-button';
 import TaskDetailModal from '@/components/tasks/TaskDetailModal';
 import { ListTodo, Clock, User as UserIcon, Filter } from 'lucide-react';
 
@@ -19,7 +20,7 @@ const EmployeeTasks = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterPriority, setFilterPriority] = useState('all');
 
-  const { data: tasks = [], isLoading } = useQuery({
+  const { data: tasks = [], isLoading, isFetching, refetch } = useQuery({
     queryKey: ['myTasks'],
     queryFn: async () => {
       const res = await api.get('/tasks');
@@ -57,6 +58,11 @@ const EmployeeTasks = () => {
           <p className="text-muted-foreground">View and update your assigned tasks.</p>
         </div>
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+          <RefreshButton
+            onRefresh={refetch}
+            isRefreshing={isFetching}
+            className="w-full sm:w-auto"
+          />
           <Filter className="h-4 w-4 text-muted-foreground" />
           <Select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="h-9 w-full text-xs sm:w-36">
             <option value="all">All Status</option>

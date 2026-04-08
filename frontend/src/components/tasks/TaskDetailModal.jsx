@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import UserAvatar from '@/components/ui/user-avatar';
 import { Dialog, DialogHeader, DialogTitle, DialogContent, DialogFooter, DialogClose } from '../../components/ui/dialog';
 import { Clock, User as UserIcon, MessageSquare, Send, Trash2 } from 'lucide-react';
 
@@ -248,9 +249,12 @@ const TaskDetail = ({ taskId, projectId, onClose }) => {
                   ) : (
                     comments.map((c) => (
                       <div key={c._id} className="flex gap-2.5">
-                        <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary shrink-0 mt-0.5">
-                          {c.user?.fullName?.charAt(0) || '?'}
-                        </div>
+                        <UserAvatar
+                          src={c.user?.profileImage}
+                          name={c.user?.fullName}
+                          alt={c.user?.fullName}
+                          className="mt-0.5 h-7 w-7 text-[10px]"
+                        />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <span className="text-xs font-semibold">{c.user?.fullName}</span>

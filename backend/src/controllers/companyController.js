@@ -36,7 +36,7 @@ const getDashboardStats = asyncHandler(async (req, res) => {
 
   // Recent employees
   const recentEmployees = await User.find({ companyId, role: 'employee' })
-    .select('fullName email department designation createdAt')
+    .select('fullName email department designation profileImage createdAt')
     .sort({ createdAt: -1 })
     .limit(5);
 
@@ -130,7 +130,7 @@ const getJoinRequests = asyncHandler(async (req, res) => {
     companyId: req.user._id,
     status: { $in: ['pending', 'accepted'] },
   })
-    .populate('employeeId', 'fullName email phone createdAt companyId')
+    .populate('employeeId', 'fullName email phone profileImage createdAt companyId')
     .sort({ createdAt: -1 });
 
   const actionableRequests = requests.filter((request) => {

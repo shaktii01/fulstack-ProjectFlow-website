@@ -8,16 +8,19 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogHeader, DialogTitle, DialogContent, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import ProjectMembersModal from '@/components/projects/ProjectMembersModal';
+import RefreshButton from '@/components/ui/refresh-button';
 import { Plus, FolderKanban, Users, Calendar, ArrowRight } from 'lucide-react';
 
 const Projects = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
+  const [membersProject, setMembersProject] = useState(null);
   const [form, setForm] = useState({ name: '', code: '', description: '', startDate: '', endDate: '' });
   const [error, setError] = useState('');
 
-  const { data: projects = [], isLoading } = useQuery({
+  const { data: projects = [], isLoading, isFetching, refetch } = useQuery({
     queryKey: ['projects'],
     queryFn: async () => {
       const res = await api.get('/projects');
@@ -62,10 +65,17 @@ const Projects = () => {
           <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Projects</h2>
           <p className="text-muted-foreground">Create and manage your company projects.</p>
         </div>
-        <Button onClick={() => setCreateOpen(true)} className="w-full sm:w-auto">
-          <Plus className="h-4 w-4 mr-2" />
-          New Project
-        </Button>
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+          <RefreshButton
+            onRefresh={refetch}
+            isRefreshing={isFetching}
+            className="w-full sm:w-auto"
+          />
+          <Button onClick={() => setCreateOpen(true)} className="w-full sm:w-auto">
+            <Plus className="h-4 w-4 mr-2" />
+            New Project
+          </Button>
+        </div>
       </div>
 
       {projects.length === 0 ? (
@@ -115,6 +125,20 @@ const Projects = () => {
                     </div>
                   )}
                 </div>
+                <div className="mt-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setMembersProject(project);
+                    }}
+                  >
+                    <Users className="mr-2 h-4 w-4" />
+                    View All Members
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}
@@ -163,6 +187,12 @@ const Projects = () => {
           </Button>
         </DialogFooter>
       </Dialog>
+
+      <ProjectMembersModal
+        open={Boolean(membersProject)}
+        project={membersProject}
+        onClose={() => setMembersProject(null)}
+      />
     </div>
   );
 };

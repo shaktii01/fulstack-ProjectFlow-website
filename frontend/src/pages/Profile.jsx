@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import RefreshButton from '@/components/ui/refresh-button';
 import { User, Mail, Phone, Shield, Save, Building2, MapPin, FileText } from 'lucide-react';
 import ImageUpload from '@/components/ui/ImageUpload';
 
@@ -25,6 +26,8 @@ const Profile = () => {
   const [message, setMessage] = useState({ type: '', text: '' });
 
   const isCompany = user?.role === 'company';
+  const employeeCompanyName =
+    typeof user?.companyId === 'object' ? user?.companyId?.companyName : user?.companyName;
 
   const updateMutation = useMutation({
     mutationFn: async (data) => {
@@ -72,11 +75,32 @@ const Profile = () => {
     setEditing(true);
   };
 
+  const refreshProfile = async () => {
+    setMessage({ type: '', text: '' });
+    setEditing(false);
+    setPasswordForm({ password: '', confirmPassword: '' });
+    await checkAuth();
+
+    const latestUser = useAuthStore.getState().user;
+    setForm({
+      fullName: latestUser?.fullName || '',
+      email: latestUser?.email || '',
+      phone: latestUser?.phone || '',
+      profileImage: latestUser?.profileImage || '',
+      companyName: latestUser?.companyName || '',
+      bio: latestUser?.bio || '',
+      address: latestUser?.address || '',
+    });
+  };
+
   return (
     <div className="max-w-3xl space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Settings</h2>
-        <p className="text-muted-foreground">Manage your {isCompany ? 'company & ' : ''}account settings.</p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Settings</h2>
+          <p className="text-muted-foreground">Manage your {isCompany ? 'company & ' : ''}account settings.</p>
+        </div>
+        <RefreshButton onRefresh={refreshProfile} className="w-full sm:w-auto" />
       </div>
 
       {message.text && (
@@ -172,6 +196,34 @@ const Profile = () => {
                 </div>
               )}
 
+              {!isCompany && (
+                <div className="pt-4 border-t">
+                  <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Employee Details</h4>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium flex items-center gap-2"><Building2 className="h-3.5 w-3.5 text-muted-foreground" /> Company</label>
+                      <Input value={employeeCompanyName || 'Not assigned yet'} readOnly />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium flex items-center gap-2"><User className="h-3.5 w-3.5 text-muted-foreground" /> Department</label>
+                      <Input value={user?.department || 'Not assigned'} readOnly />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium flex items-center gap-2"><Shield className="h-3.5 w-3.5 text-muted-foreground" /> Designation</label>
+                      <Input value={user?.designation || 'Not assigned'} readOnly />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium flex items-center gap-2"><MapPin className="h-3.5 w-3.5 text-muted-foreground" /> Address</label>
+                      <Input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="Your address" />
+                    </div>
+                    <div className="space-y-1.5 sm:col-span-2">
+                      <label className="text-sm font-medium flex items-center gap-2"><FileText className="h-3.5 w-3.5 text-muted-foreground" /> About / Bio</label>
+                      <Textarea value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} placeholder="Tell your company a little about yourself..." rows={3} />
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Password */}
               <div className="pt-4 border-t">
                 <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
@@ -238,6 +290,56 @@ const Profile = () => {
                         <div>
                           <p className="text-xs text-muted-foreground">Company</p>
                           <p className="text-sm font-medium">{user.companyName}</p>
+                        </div>
+                      </div>
+                    )}
+                    {user?.address && (
+                      <div className="flex items-center gap-3">
+                        <MapPin className="h-4 w-4 text-muted-foreground" />
+                        <div>
+                          <p className="text-xs text-muted-foreground">Address</p>
+                          <p className="text-sm font-medium">{user.address}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  {user?.bio && (
+                    <div className="mt-3">
+                      <p className="text-xs text-muted-foreground mb-1">About</p>
+                      <p className="text-sm">{user.bio}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {!isCompany && (employeeCompanyName || user?.department || user?.designation || user?.address || user?.bio) && (
+                <div className="pt-4 border-t mt-4">
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Employee Info</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {employeeCompanyName && (
+                      <div className="flex items-center gap-3">
+                        <Building2 className="h-4 w-4 text-muted-foreground" />
+                        <div>
+                          <p className="text-xs text-muted-foreground">Company</p>
+                          <p className="text-sm font-medium">{employeeCompanyName}</p>
+                        </div>
+                      </div>
+                    )}
+                    {user?.department && (
+                      <div className="flex items-center gap-3">
+                        <User className="h-4 w-4 text-muted-foreground" />
+                        <div>
+                          <p className="text-xs text-muted-foreground">Department</p>
+                          <p className="text-sm font-medium">{user.department}</p>
+                        </div>
+                      </div>
+                    )}
+                    {user?.designation && (
+                      <div className="flex items-center gap-3">
+                        <Shield className="h-4 w-4 text-muted-foreground" />
+                        <div>
+                          <p className="text-xs text-muted-foreground">Designation</p>
+                          <p className="text-sm font-medium">{user.designation}</p>
                         </div>
                       </div>
                     )}

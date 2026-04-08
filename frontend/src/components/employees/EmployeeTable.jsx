@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, CardContent } from '../ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import UserAvatar from '@/components/ui/user-avatar';
 import { Users, Pencil, Trash2 } from 'lucide-react';
 
 const EmployeeTable = ({ employees, onEdit, onRemove }) => {
@@ -26,9 +27,12 @@ const EmployeeTable = ({ employees, onEdit, onRemove }) => {
           <div key={emp._id} className="rounded-xl border border-border/70 bg-background/40 p-4">
             <div className="flex items-start justify-between gap-3">
               <div className="flex min-w-0 items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
-                  {emp.fullName.charAt(0)}
-                </div>
+                <UserAvatar
+                  src={emp.profileImage}
+                  name={emp.fullName}
+                  alt={emp.fullName}
+                  className="h-10 w-10 text-xs"
+                />
                 <div className="min-w-0">
                   <p className="truncate font-medium">{emp.fullName}</p>
                   <p className="truncate text-sm text-muted-foreground">{emp.email}</p>
@@ -85,9 +89,12 @@ const EmployeeTable = ({ employees, onEdit, onRemove }) => {
               <tr key={emp._id} className="border-b last:border-0 transition-colors hover:bg-muted/30">
                 <td className="p-4">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
-                      {emp.fullName.charAt(0)}
-                    </div>
+                    <UserAvatar
+                      src={emp.profileImage}
+                      name={emp.fullName}
+                      alt={emp.fullName}
+                      className="h-8 w-8 text-xs"
+                    />
                     <span className="font-medium">{emp.fullName}</span>
                   </div>
                 </td>

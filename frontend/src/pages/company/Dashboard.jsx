@@ -7,12 +7,14 @@ import { Badge } from '@/components/ui/badge';
 import { Users, FolderKanban, CheckCircle, AlertCircle, ListTodo, Clock, TrendingUp, ArrowRight } from 'lucide-react';
 import useAuthStore from '@/store/authStore';
 import StatCard from '@/components/dashboard/StatCard';
+import RefreshButton from '@/components/ui/refresh-button';
+import UserAvatar from '@/components/ui/user-avatar';
 
 const CompanyDashboard = () => {
   const user = useAuthStore(state => state.user);
   const navigate = useNavigate();
 
-  const { data: stats, isLoading, error } = useQuery({
+  const { data: stats, isLoading, error, refetch, isFetching } = useQuery({
     queryKey: ['companyStats'],
     queryFn: async () => {
       const response = await api.get('/company/dashboard');
@@ -41,10 +43,17 @@ const CompanyDashboard = () => {
           <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Dashboard</h2>
           <p className="text-muted-foreground mt-1">Welcome back, {user?.fullName}. Here's your company overview.</p>
         </div>
-        <div className="flex flex-col items-start md:items-end gap-1">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Invitation Code</p>
-          <div className="inline-flex max-w-full items-center overflow-x-auto rounded-lg border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-mono font-bold text-primary tracking-[0.2em] sm:text-lg sm:tracking-[0.25em]">
-            {user?.invitationCode}
+        <div className="flex w-full flex-col gap-3 md:w-auto md:items-end">
+          <RefreshButton
+            onRefresh={refetch}
+            isRefreshing={isFetching}
+            className="w-full md:w-auto"
+          />
+          <div className="flex flex-col items-start gap-1 md:items-end">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Invitation Code</p>
+            <div className="inline-flex max-w-full items-center overflow-x-auto rounded-lg border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-mono font-bold text-primary tracking-[0.2em] sm:text-lg sm:tracking-[0.25em]">
+              {user?.invitationCode}
+            </div>
           </div>
         </div>
       </div>
@@ -192,13 +201,12 @@ const CompanyDashboard = () => {
               <div className="space-y-3">
                 {stats.recentEmployees?.map((emp) => (
                   <div key={emp._id} className="flex items-center gap-3 p-2.5 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-                    <div className="w-8 h-8 rounded-full bg-primary/15 flex items-center justify-center text-primary font-bold text-xs shrink-0 overflow-hidden border border-border/50">
-                      {emp.profileImage ? (
-                        <img src={emp.profileImage} alt={emp.fullName} className="w-full h-full object-cover" />
-                      ) : (
-                        emp.fullName?.charAt(0)
-                      )}
-                    </div>
+                    <UserAvatar
+                      src={emp.profileImage}
+                      name={emp.fullName}
+                      alt={emp.fullName}
+                      className="h-8 w-8 bg-primary/15 text-xs"
+                    />
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium truncate">{emp.fullName}</p>
                       <p className="text-xs text-muted-foreground truncate">{emp.department || emp.email}</p>

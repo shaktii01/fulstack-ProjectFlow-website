@@ -15,6 +15,8 @@ import {
   X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import ThemeToggle from '@/components/theme/ThemeToggle';
+import UserAvatar from '@/components/ui/user-avatar';
 
 const AppLayout = () => {
   const { user, logout, isLoading } = useAuthStore();
@@ -178,13 +180,13 @@ const AppLayout = () => {
                   : 'hover:bg-accent'
               )}
             >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border/50 bg-primary/20 font-bold text-primary">
-                {user.profileImage ? (
-                  <img src={user.profileImage} alt="Profile" className="h-full w-full object-cover" />
-                ) : (
-                  user.fullName.charAt(0)
-                )}
-              </div>
+              <UserAvatar
+                src={user.profileImage}
+                name={user.fullName}
+                alt="Profile"
+                className="h-10 w-10 bg-primary/20"
+                fallbackClassName="text-base"
+              />
               <div className="overflow-hidden">
                 <p className="truncate text-sm font-medium">{user.fullName}</p>
                 <p className="text-xs capitalize text-muted-foreground">{user.role}</p>
@@ -225,6 +227,7 @@ const AppLayout = () => {
             </div>
 
             <div className="flex items-center gap-3">
+              <ThemeToggle className="h-9 w-9 sm:h-10 sm:w-10" />
               <div className="hidden text-right sm:block">
                 <p className="text-sm font-medium">{user.fullName}</p>
                 <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
@@ -234,14 +237,16 @@ const AppLayout = () => {
               <button
                 type="button"
                 onClick={() => navigate('/profile')}
-                className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-border/50 bg-primary/10 text-xs font-bold text-primary"
+                className="flex h-9 w-9 items-center justify-center"
                 aria-label="Open profile"
               >
-                {user.profileImage ? (
-                  <img src={user.profileImage} alt="Profile" className="h-full w-full object-cover" />
-                ) : (
-                  user.fullName.charAt(0)
-                )}
+                <UserAvatar
+                  src={user.profileImage}
+                  name={user.fullName}
+                  alt="Profile"
+                  className="h-9 w-9"
+                  fallbackClassName="text-xs"
+                />
               </button>
             </div>
           </header>

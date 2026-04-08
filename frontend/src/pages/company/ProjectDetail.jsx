@@ -6,6 +6,8 @@ import useAuthStore from '@/store/authStore';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import RefreshButton from '@/components/ui/refresh-button';
+import UserAvatar from '@/components/ui/user-avatar';
 import TaskDetailModal from '@/components/tasks/TaskDetailModal';
 import CreateTaskModal from '@/components/projects/CreateTaskModal';
 import EditProjectModal from '@/components/projects/EditProjectModal';
@@ -25,7 +27,12 @@ const ProjectDetail = () => {
   const [editProjectOpen, setEditProjectOpen] = useState(false);
   const [addMemberOpen, setAddMemberOpen] = useState(false);
 
-  const { data: project, isLoading: projectLoading } = useQuery({
+  const {
+    data: project,
+    isLoading: projectLoading,
+    isFetching: isProjectFetching,
+    refetch: refetchProject,
+  } = useQuery({
     queryKey: ['project', id],
     queryFn: async () => {
       const res = await api.get(`/projects/${id}`);
@@ -33,7 +40,12 @@ const ProjectDetail = () => {
     },
   });
 
-  const { data: tasks = [], isLoading: tasksLoading } = useQuery({
+  const {
+    data: tasks = [],
+    isLoading: tasksLoading,
+    isFetching: isTasksFetching,
+    refetch: refetchTasks,
+  } = useQuery({
     queryKey: ['tasks', id],
     queryFn: async () => {
       const res = await api.get(`/tasks?projectId=${id}`);
@@ -41,7 +53,11 @@ const ProjectDetail = () => {
     },
   });
 
-  const { data: employees = [] } = useQuery({
+  const {
+    data: employees = [],
+    isFetching: isEmployeesFetching,
+    refetch: refetchEmployees,
+  } = useQuery({
     queryKey: ['companyEmployees'],
     queryFn: async () => {
       const res = await api.get('/company/employees');
@@ -67,6 +83,16 @@ const ProjectDetail = () => {
     }
   };
 
+  const refreshPage = async () => {
+    await Promise.all([
+      refetchProject(),
+      refetchTasks(),
+      isCompany ? refetchEmployees() : Promise.resolve(),
+    ]);
+  };
+
+  const isRefreshing = isProjectFetching || isTasksFetching || (isCompany && isEmployeesFetching);
+
   if (projectLoading) {
     return <div className="flex items-center justify-center py-20 text-muted-foreground">Loading project...</div>;
   }
@@ -90,12 +116,19 @@ const ProjectDetail = () => {
             </div>
             {project.description && <p className="text-muted-foreground mt-1">{project.description}</p>}
           </div>
-          {isCompany && (
-            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+            <RefreshButton
+              onRefresh={refreshPage}
+              isRefreshing={isRefreshing}
+              className="w-full sm:w-auto"
+            />
+            {isCompany && (
+              <>
               <Button variant="outline" size="sm" className="w-full sm:w-auto" onClick={() => setEditProjectOpen(true)}>Edit</Button>
               <Button variant="outline" size="sm" className="w-full sm:w-auto" onClick={handleDeleteProject}><Trash2 className="h-4 w-4 text-destructive" /></Button>
-            </div>
-          )}
+              </>
+            )}
+          </div>
         </div>
       </div>
 
@@ -117,9 +150,12 @@ const ProjectDetail = () => {
             <div className="flex flex-wrap gap-2 mt-3">
               {project.members?.map((m) => (
                 <div key={m._id} className="flex items-center gap-1.5 bg-muted px-2 py-1 rounded-full text-xs">
-                  <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-[10px] font-bold text-primary">
-                    {m.fullName?.charAt(0)}
-                  </div>
+                  <UserAvatar
+                    src={m.profileImage}
+                    name={m.fullName}
+                    alt={m.fullName}
+                    className="h-5 w-5 bg-primary/20 text-[10px]"
+                  />
                   <span>{m.fullName}</span>
                 </div>
               ))}

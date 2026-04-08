@@ -1,15 +1,19 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import api from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import ProjectMembersModal from '@/components/projects/ProjectMembersModal';
+import RefreshButton from '@/components/ui/refresh-button';
 import { FolderKanban, Users, Calendar, ArrowRight } from 'lucide-react';
 
 const EmployeeProjects = () => {
   const navigate = useNavigate();
+  const [membersProject, setMembersProject] = useState(null);
 
-  const { data: projects = [], isLoading } = useQuery({
+  const { data: projects = [], isLoading, isFetching, refetch } = useQuery({
     queryKey: ['projects'],
     queryFn: async () => {
       const res = await api.get('/projects');
@@ -23,9 +27,16 @@ const EmployeeProjects = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">My Projects</h2>
-        <p className="text-muted-foreground">Projects you are a member of.</p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">My Projects</h2>
+          <p className="text-muted-foreground">Projects you are a member of.</p>
+        </div>
+        <RefreshButton
+          onRefresh={refetch}
+          isRefreshing={isFetching}
+          className="w-full sm:w-auto"
+        />
       </div>
 
       {projects.length === 0 ? (
@@ -71,11 +82,31 @@ const EmployeeProjects = () => {
                     </div>
                   )}
                 </div>
+                <div className="mt-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setMembersProject(project);
+                    }}
+                  >
+                    <Users className="mr-2 h-4 w-4" />
+                    View All Members
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}
         </div>
       )}
+
+      <ProjectMembersModal
+        open={Boolean(membersProject)}
+        project={membersProject}
+        onClose={() => setMembersProject(null)}
+      />
     </div>
   );
 };

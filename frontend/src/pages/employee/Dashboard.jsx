@@ -5,6 +5,7 @@ import api from '@/lib/api';
 import useAuthStore from '@/store/authStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import RefreshButton from '@/components/ui/refresh-button';
 import { FolderKanban, CheckCircle, Clock, ListTodo, TrendingUp, ArrowRight, AlertCircle } from 'lucide-react';
 import StatCard from '@/components/dashboard/StatCard';
 
@@ -12,7 +13,7 @@ const EmployeeDashboard = () => {
   const user = useAuthStore((s) => s.user);
   const navigate = useNavigate();
 
-  const { data: projects = [] } = useQuery({
+  const { data: projects = [], isFetching: isProjectsFetching, refetch: refetchProjects } = useQuery({
     queryKey: ['projects'],
     queryFn: async () => {
       const res = await api.get('/projects');
@@ -20,7 +21,7 @@ const EmployeeDashboard = () => {
     },
   });
 
-  const { data: tasks = [], isLoading } = useQuery({
+  const { data: tasks = [], isLoading, isFetching: isTasksFetching, refetch: refetchTasks } = useQuery({
     queryKey: ['myTasks'],
     queryFn: async () => {
       const res = await api.get('/tasks');
@@ -36,12 +37,21 @@ const EmployeeDashboard = () => {
   const overdueCount = myTasks.filter((t) => t.status !== 'done' && t.dueDate && new Date(t.dueDate) < new Date()).length;
   const completionRate = myTasks.length > 0 ? Math.round((doneCount / myTasks.length) * 100) : 0;
   const recentTasks = myTasks.slice(0, 6);
+  const refreshPage = () => Promise.all([refetchProjects(), refetchTasks()]);
+  const isRefreshing = isProjectsFetching || isTasksFetching;
 
   return (
     <div className="space-y-8">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Welcome back, {user?.fullName?.split(' ')[0]}!</h2>
-        <p className="text-muted-foreground mt-1">Here's an overview of your work today.</p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Welcome back, {user?.fullName?.split(' ')[0]}!</h2>
+          <p className="text-muted-foreground mt-1">Here's an overview of your work today.</p>
+        </div>
+        <RefreshButton
+          onRefresh={refreshPage}
+          isRefreshing={isRefreshing}
+          className="w-full sm:w-auto"
+        />
       </div>
 
       {/* Stats Grid */}

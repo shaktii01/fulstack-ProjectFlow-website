@@ -4,29 +4,30 @@
 
 @layer base {
   :root {
-    --background: 222 47% 6%;
+    color-scheme: dark;
+    --background: 0 0% 0%;
     --foreground: 210 40% 98%;
 
     --primary: 262 83% 58%;
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 217 33% 17%;
+    --secondary: 0 0% 8%;
     --secondary-foreground: 210 40% 98%;
 
     --destructive: 0 63% 55%;
     --destructive-foreground: 210 40% 98%;
 
-    --muted: 217 33% 12%;
+    --muted: 0 0% 6%;
     --muted-foreground: 215 20% 55%;
 
-    --accent: 217 33% 17%;
+    --accent: 0 0% 10%;
     --accent-foreground: 210 40% 98%;
 
-    --card: 222 47% 8%;
+    --card: 0 0% 4%;
     --card-foreground: 210 40% 98%;
 
-    --border: 217 33% 15%;
-    --input: 217 33% 18%;
+    --border: 0 0% 12%;
+    --input: 0 0% 10%;
     --ring: 262 83% 58%;
 
     --radius: 0.75rem;
@@ -35,14 +36,48 @@
     --warning: 38 92% 50%;
     --info: 217 91% 60%;
   }
+
+  :root[data-theme='light'] {
+    color-scheme: light;
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+
+    --primary: 262 83% 58%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 210 40% 98%;
+
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 40%;
+
+    --accent: 210 40% 94%;
+    --accent-foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 262 83% 58%;
+  }
 }
 
 @layer base {
   * {
     @apply border-border;
   }
+  html,
+  #root {
+    @apply bg-background;
+    min-height: 100%;
+  }
   body {
     @apply bg-background text-foreground;
+    min-height: 100vh;
     font-feature-settings: "rlig" 1, "calt" 1;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -81,7 +116,7 @@
 input[type="date"],
 input[type="datetime-local"],
 input[type="time"] {
-  color-scheme: dark;
+  color-scheme: inherit;
 }
 
 input[type="date"]::-webkit-calendar-picker-indicator,
@@ -99,4 +134,10 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover,
 input[type="time"]::-webkit-calendar-picker-indicator:hover {
   opacity: 1;
+}
+
+:root[data-theme='light'] input[type="date"]::-webkit-calendar-picker-indicator,
+:root[data-theme='light'] input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+:root[data-theme='light'] input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: none;
 }

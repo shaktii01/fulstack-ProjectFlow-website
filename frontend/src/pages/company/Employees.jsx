@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { Input } from '@/components/ui/input';
+import RefreshButton from '@/components/ui/refresh-button';
 import { Search } from 'lucide-react';
 import EmployeeTable from '@/components/employees/EmployeeTable';
 import EditEmployeeModal from '@/components/employees/EditEmployeeModal';
@@ -11,7 +12,12 @@ const Employees = () => {
   const [search, setSearch] = useState('');
   const [editModal, setEditModal] = useState({ open: false, employee: null });
 
-  const { data: employees = [], isLoading } = useQuery({
+  const {
+    data: employees = [],
+    isLoading,
+    isFetching,
+    refetch,
+  } = useQuery({
     queryKey: ['companyEmployees'],
     queryFn: async () => {
       const res = await api.get('/company/employees');
@@ -57,14 +63,21 @@ const Employees = () => {
           <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Employees</h2>
           <p className="text-muted-foreground">Manage your team members.</p>
         </div>
-        <div className="relative w-full sm:w-72">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search employees..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
+        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
+          <RefreshButton
+            onRefresh={refetch}
+            isRefreshing={isFetching}
+            className="w-full sm:w-auto"
           />
+          <div className="relative w-full sm:w-72">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search employees..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9"
+            />
+          </div>
         </div>
       </div>
 

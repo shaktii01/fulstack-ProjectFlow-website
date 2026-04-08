@@ -3,13 +3,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import RefreshButton from '@/components/ui/refresh-button';
+import UserAvatar from '@/components/ui/user-avatar';
 import { Inbox, CheckCircle, XCircle, Clock } from 'lucide-react';
 
 const JoinRequests = () => {
   const queryClient = useQueryClient();
 
-  const { data: requests = [], isLoading } = useQuery({
+  const { data: requests = [], isLoading, isFetching, refetch } = useQuery({
     queryKey: ['joinRequests'],
     queryFn: async () => {
       const res = await api.get('/company/requests');
@@ -35,9 +36,16 @@ const JoinRequests = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Join Requests</h2>
-        <p className="text-muted-foreground">Review and manage employee join requests.</p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Join Requests</h2>
+          <p className="text-muted-foreground">Review and manage employee join requests.</p>
+        </div>
+        <RefreshButton
+          onRefresh={refetch}
+          isRefreshing={isFetching}
+          className="w-full sm:w-auto"
+        />
       </div>
 
       {requests.length === 0 ? (
@@ -57,9 +65,12 @@ const JoinRequests = () => {
               <CardContent className="p-6">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-lg">
-                      {req.employeeId?.fullName?.charAt(0) || '?'}
-                    </div>
+                    <UserAvatar
+                      src={req.employeeId?.profileImage}
+                      name={req.employeeId?.fullName}
+                      alt={req.employeeId?.fullName}
+                      className="h-12 w-12 text-lg"
+                    />
                     <div>
                       <h3 className="font-semibold text-base">{req.employeeId?.fullName || 'Unknown'}</h3>
                       <p className="text-sm text-muted-foreground">{req.employeeId?.email || 'No email'}</p>
