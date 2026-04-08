@@ -1,0 +1,212 @@
+import React, { useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import api from '../../lib/api';
+import useAuthStore from '../../store/authStore';
+import { Card, CardContent } from '../../components/ui/card';
+import { Button } from '../../components/ui/button';
+import { Badge } from '../../components/ui/badge';
+import TaskDetailModal from '../../components/tasks/TaskDetailModal';
+import CreateTaskModal from '../../components/projects/CreateTaskModal';
+import EditProjectModal from '../../components/projects/EditProjectModal';
+import AddMemberModal from '../../components/projects/AddMemberModal';
+import KanbanBoard from '../../components/projects/KanbanBoard';
+import { ArrowLeft, Plus, Users, Calendar, Trash2 } from 'lucide-react';
+
+const ProjectDetail = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const user = useAuthStore((s) => s.user);
+  const isCompany = user?.role === 'company';
+
+  const [createTaskOpen, setCreateTaskOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [editProjectOpen, setEditProjectOpen] = useState(false);
+  const [addMemberOpen, setAddMemberOpen] = useState(false);
+
+  const { data: project, isLoading: projectLoading } = useQuery({
+    queryKey: ['project', id],
+    queryFn: async () => {
+      const res = await api.get(`/projects/${id}`);
+      return res.data;
+    },
+  });
+
+  const { data: tasks = [], isLoading: tasksLoading } = useQuery({
+    queryKey: ['tasks', id],
+    queryFn: async () => {
+      const res = await api.get(`/tasks?projectId=${id}`);
+      return res.data;
+    },
+  });
+
+  const { data: employees = [] } = useQuery({
+    queryKey: ['companyEmployees'],
+    queryFn: async () => {
+      const res = await api.get('/company/employees');
+      return res.data;
+    },
+    enabled: isCompany,
+  });
+
+  const deleteProjectMutation = useMutation({
+    mutationFn: async () => {
+      const res = await api.delete(`/projects/${id}`);
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      navigate(isCompany ? '/company/projects' : '/employee/projects');
+    },
+  });
+
+  const handleDeleteProject = () => {
+    if (window.confirm('Are you sure you want to delete this project? This cannot be undone.')) {
+      deleteProjectMutation.mutate();
+    }
+  };
+
+  if (projectLoading) {
+    return <div className="flex items-center justify-center py-20 text-muted-foreground">Loading project...</div>;
+  }
+
+  if (!project) {
+    return <div className="text-center py-20 text-destructive">Project not found.</div>;
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col gap-4">
+        <button onClick={() => navigate(isCompany ? '/company/projects' : '/employee/projects')} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors w-fit">
+          <ArrowLeft className="h-4 w-4" /> Back to Projects
+        </button>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <div className="flex items-center gap-3">
+              <Badge variant="outline" className="font-mono">{project.code}</Badge>
+              <h2 className="text-3xl font-bold tracking-tight">{project.name}</h2>
+            </div>
+            {project.description && <p className="text-muted-foreground mt-1">{project.description}</p>}
+          </div>
+          {isCompany && (
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => setEditProjectOpen(true)}>Edit</Button>
+              <Button variant="outline" size="sm" onClick={handleDeleteProject}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Members + Info Bar */}
+      <div className="flex flex-wrap gap-4">
+        <Card className="flex-1 min-w-[200px]">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium">Members ({project.members?.length || 0})</span>
+              </div>
+              {isCompany && (
+                <Button variant="ghost" size="sm" onClick={() => setAddMemberOpen(true)}>
+                  <Plus className="h-3.5 w-3.5" />
+                </Button>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-2 mt-3">
+              {project.members?.map((m) => (
+                <div key={m._id} className="flex items-center gap-1.5 bg-muted px-2 py-1 rounded-full text-xs">
+                  <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-[10px] font-bold text-primary">
+                    {m.fullName?.charAt(0)}
+                  </div>
+                  <span>{m.fullName}</span>
+                </div>
+              ))}
+              {(!project.members || project.members.length === 0) && (
+                <p className="text-xs text-muted-foreground">No members assigned yet.</p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+        {project.startDate && (
+          <Card className="min-w-[150px]">
+            <CardContent className="p-4 flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <div className="text-sm">
+                <span className="text-muted-foreground">Start: </span>
+                <span className="font-medium">{new Date(project.startDate).toLocaleDateString()}</span>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+        {project.endDate && (
+          <Card className="min-w-[150px]">
+            <CardContent className="p-4 flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <div className="text-sm">
+                <span className="text-muted-foreground">End: </span>
+                <span className="font-medium">{new Date(project.endDate).toLocaleDateString()}</span>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      {/* Tasks Section */}
+      <div className="flex items-center justify-between">
+        <h3 className="text-xl font-semibold">Tasks</h3>
+        {isCompany && (
+          <Button size="sm" onClick={() => setCreateTaskOpen(true)}>
+            <Plus className="h-4 w-4 mr-1.5" /> Add Task
+          </Button>
+        )}
+      </div>
+
+      {tasksLoading ? (
+        <div className="text-muted-foreground text-center py-8">Loading tasks...</div>
+      ) : tasks.length === 0 ? (
+        <Card>
+          <CardContent className="py-12 text-center">
+            <p className="text-muted-foreground">No tasks yet. {isCompany ? 'Create your first task!' : ''}</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <KanbanBoard tasks={tasks} projectId={id} onTaskSelect={setSelectedTask} />
+      )}
+
+      {/* Modals */}
+      {selectedTask && (
+        <TaskDetailModal
+          taskId={selectedTask}
+          projectId={id}
+          onClose={() => setSelectedTask(null)}
+        />
+      )}
+
+      {isCompany && (
+        <>
+          <CreateTaskModal
+            open={createTaskOpen}
+            onClose={() => setCreateTaskOpen(false)}
+            projectId={id}
+            members={project.members}
+          />
+          <EditProjectModal
+            open={editProjectOpen}
+            onClose={() => setEditProjectOpen(false)}
+            project={project}
+          />
+          <AddMemberModal
+            open={addMemberOpen}
+            onClose={() => setAddMemberOpen(false)}
+            project={project}
+            employees={employees}
+          />
+        </>
+      )}
+    </div>
+  );
+};
+
+export default ProjectDetail;

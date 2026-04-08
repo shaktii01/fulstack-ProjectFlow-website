@@ -1,0 +1,106 @@
+import React from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import api from '../../lib/api';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { Button } from '../../components/ui/button';
+import { Badge } from '../../components/ui/badge';
+import { Inbox, CheckCircle, XCircle, Clock } from 'lucide-react';
+
+const JoinRequests = () => {
+  const queryClient = useQueryClient();
+
+  const { data: requests = [], isLoading } = useQuery({
+    queryKey: ['joinRequests'],
+    queryFn: async () => {
+      const res = await api.get('/company/requests');
+      return res.data;
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, status }) => {
+      const res = await api.put(`/company/requests/${id}`, { status });
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['joinRequests'] });
+      queryClient.invalidateQueries({ queryKey: ['companyStats'] });
+      queryClient.invalidateQueries({ queryKey: ['companyEmployees'] });
+    },
+  });
+
+  if (isLoading) {
+    return <div className="flex items-center justify-center py-20 text-muted-foreground">Loading requests...</div>;
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-3xl font-bold tracking-tight">Join Requests</h2>
+        <p className="text-muted-foreground">Review and manage employee join requests.</p>
+      </div>
+
+      {requests.length === 0 ? (
+        <Card>
+          <CardContent className="py-16 text-center">
+            <Inbox className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4" />
+            <h3 className="text-lg font-semibold">No pending requests</h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              All join requests have been processed. New employees can request to join using your invitation code.
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-4">
+          {requests.map((req) => (
+            <Card key={req._id} className="hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-lg">
+                      {req.employeeId?.fullName?.charAt(0) || '?'}
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-base">{req.employeeId?.fullName || 'Unknown'}</h3>
+                      <p className="text-sm text-muted-foreground">{req.employeeId?.email || 'No email'}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Clock className="h-3 w-3 text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground">
+                          Requested {new Date(req.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <Button
+                      onClick={() => updateMutation.mutate({ id: req._id, status: 'accepted' })}
+                      disabled={updateMutation.isPending}
+                      className="flex-1 sm:flex-none"
+                      size="sm"
+                    >
+                      <CheckCircle className="h-4 w-4 mr-1.5" />
+                      Accept
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => updateMutation.mutate({ id: req._id, status: 'rejected' })}
+                      disabled={updateMutation.isPending}
+                      className="flex-1 sm:flex-none"
+                      size="sm"
+                    >
+                      <XCircle className="h-4 w-4 mr-1.5" />
+                      Reject
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default JoinRequests;
