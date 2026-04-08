@@ -54,7 +54,7 @@ const Employees = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Employees</h2>
+          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Employees</h2>
           <p className="text-muted-foreground">Manage your team members.</p>
         </div>
         <div className="relative w-full sm:w-72">

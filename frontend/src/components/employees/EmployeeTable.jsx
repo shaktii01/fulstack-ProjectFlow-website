@@ -21,8 +21,55 @@ const EmployeeTable = ({ employees, onEdit, onRemove }) => {
 
   return (
     <Card>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+      <div className="space-y-3 p-4 md:hidden">
+        {employees.map((emp) => (
+          <div key={emp._id} className="rounded-xl border border-border/70 bg-background/40 p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                  {emp.fullName.charAt(0)}
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate font-medium">{emp.fullName}</p>
+                  <p className="truncate text-sm text-muted-foreground">{emp.email}</p>
+                </div>
+              </div>
+              <Badge variant={emp.isActive ? 'success' : 'destructive'}>
+                {emp.isActive ? 'Active' : 'Inactive'}
+              </Badge>
+            </div>
+
+            <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+              <div>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Department</p>
+                <p className="mt-1">{emp.department || 'Not set'}</p>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Designation</p>
+                <p className="mt-1">{emp.designation || 'Not set'}</p>
+              </div>
+            </div>
+
+            <div className="mt-4 flex gap-2">
+              <Button variant="outline" className="flex-1" onClick={() => onEdit(emp)}>
+                <Pencil className="mr-2 h-4 w-4" />
+                Edit
+              </Button>
+              <Button
+                variant="ghost"
+                className="flex-1 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                onClick={() => onRemove(emp._id, emp.fullName)}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Remove
+              </Button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="hidden overflow-x-auto md:block">
+        <table className="w-full min-w-[760px] text-sm">
           <thead>
             <tr className="border-b bg-muted/50">
               <th className="text-left p-4 font-medium text-muted-foreground">Name</th>
@@ -35,18 +82,18 @@ const EmployeeTable = ({ employees, onEdit, onRemove }) => {
           </thead>
           <tbody>
             {employees.map((emp) => (
-              <tr key={emp._id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
+              <tr key={emp._id} className="border-b last:border-0 transition-colors hover:bg-muted/30">
                 <td className="p-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
                       {emp.fullName.charAt(0)}
                     </div>
                     <span className="font-medium">{emp.fullName}</span>
                   </div>
                 </td>
                 <td className="p-4 text-muted-foreground">{emp.email}</td>
-                <td className="p-4">{emp.department || <span className="text-muted-foreground/50">—</span>}</td>
-                <td className="p-4">{emp.designation || <span className="text-muted-foreground/50">—</span>}</td>
+                <td className="p-4">{emp.department || <span className="text-muted-foreground/50">Not set</span>}</td>
+                <td className="p-4">{emp.designation || <span className="text-muted-foreground/50">Not set</span>}</td>
                 <td className="p-4">
                   <Badge variant={emp.isActive ? 'success' : 'destructive'}>
                     {emp.isActive ? 'Active' : 'Inactive'}

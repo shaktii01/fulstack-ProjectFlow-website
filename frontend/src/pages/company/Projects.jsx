@@ -59,10 +59,10 @@ const Projects = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Projects</h2>
+          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Projects</h2>
           <p className="text-muted-foreground">Create and manage your company projects.</p>
         </div>
-        <Button onClick={() => setCreateOpen(true)}>
+        <Button onClick={() => setCreateOpen(true)} className="w-full sm:w-auto">
           <Plus className="h-4 w-4 mr-2" />
           New Project
         </Button>
@@ -103,7 +103,7 @@ const Projects = () => {
                 {project.description && (
                   <p className="text-sm text-muted-foreground line-clamp-2 mb-4">{project.description}</p>
                 )}
-                <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <Users className="h-3.5 w-3.5" />
                     <span>{project.members?.length || 0} members</span>
@@ -144,7 +144,7 @@ const Projects = () => {
               <label className="text-sm font-medium">Description</label>
               <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Brief description of the project..." />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Start Date</label>
                 <Input type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} />

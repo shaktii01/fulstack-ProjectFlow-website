@@ -1,13 +1,48 @@
-import React from 'react';
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Navigate, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import useAuthStore from '@/store/authStore';
-import { LogOut, LayoutDashboard, FolderKanban, Users, Inbox, ListTodo, Building2, Settings } from 'lucide-react';
+import {
+  LogOut,
+  LayoutDashboard,
+  FolderKanban,
+  Users,
+  Inbox,
+  ListTodo,
+  Building2,
+  Settings,
+  ChevronLeft,
+  Menu,
+  X,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const AppLayout = () => {
   const { user, logout, isLoading } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
+  const [isDesktop, setIsDesktop] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    return window.innerWidth >= 1024;
+  });
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isSidebarHidden, setIsSidebarHidden] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsDesktop(window.innerWidth >= 1024);
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (!isDesktop) {
+      setIsMobileSidebarOpen(false);
+    }
+  }, [location.pathname, isDesktop]);
 
   if (isLoading) {
     return (
@@ -21,8 +56,7 @@ const AppLayout = () => {
   }
 
   if (!user) {
-    navigate('/login');
-    return null;
+    return <Navigate to="/login" replace />;
   }
 
   const handleLogout = async () => {
@@ -51,95 +85,172 @@ const AppLayout = () => {
     return false;
   };
 
+  const sidebarVisible = isDesktop ? !isSidebarHidden : isMobileSidebarOpen;
+
+  const toggleSidebar = () => {
+    if (isDesktop) {
+      setIsSidebarHidden((prev) => !prev);
+      return;
+    }
+
+    setIsMobileSidebarOpen((prev) => !prev);
+  };
+
   return (
-    <div className="flex min-h-screen bg-muted/40">
-      {/* Sidebar */}
-      <aside className="w-64 bg-card border-r flex flex-col shrink-0">
-        <div className="h-16 flex items-center px-6 border-b font-bold text-xl text-primary tracking-tight">
-          ProjectFlow
-        </div>
-        <nav className="flex-1 overflow-y-auto py-4">
-          <ul className="space-y-1 px-3">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const active = isActive(item.path);
-              return (
-                <li key={item.name}>
-                  <button
-                    onClick={() => navigate(item.path)}
-                    className={cn(
-                      "w-full flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all",
-                      active
-                        ? "bg-primary text-primary-foreground shadow-sm"
-                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                    )}
-                  >
-                    <Icon className="w-5 h-5 mr-3" />
-                    {item.name}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
+    <div className="min-h-screen bg-muted/40">
+      {!isDesktop && sidebarVisible && (
+        <button
+          type="button"
+          aria-label="Close sidebar overlay"
+          className="fixed inset-0 z-30 bg-background/80 backdrop-blur-sm lg:hidden"
+          onClick={() => setIsMobileSidebarOpen(false)}
+        />
+      )}
 
-        {/* Bottom section */}
-        <div className="p-4 border-t border-border space-y-2">
-          {/* Profile Link */}
-          <button
-            onClick={() => navigate('/profile')}
-            className={cn(
-              "w-full flex items-center gap-3 p-2 rounded-lg transition-colors",
-              location.pathname === '/profile'
-                ? "bg-primary/10"
-                : "hover:bg-accent"
-            )}
-          >
-            <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold overflow-hidden border border-border/50 shrink-0">
-              {user.profileImage ? (
-                <img src={user.profileImage} alt="Profile" className="w-full h-full object-cover" />
-              ) : (
-                user.fullName.charAt(0)
-              )}
-            </div>
-            <div className="overflow-hidden text-left">
-              <p className="text-sm font-medium truncate">{user.fullName}</p>
-              <p className="text-xs text-muted-foreground capitalize">{user.role}</p>
-            </div>
-          </button>
+      <div className="flex min-h-screen">
+        <div
+          aria-hidden="true"
+          className={cn(
+            'hidden shrink-0 transition-[width] duration-300 ease-in-out lg:block',
+            sidebarVisible ? 'w-72' : 'w-0'
+          )}
+        />
 
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center text-sm font-medium text-destructive hover:bg-destructive/10 px-3 py-2 rounded-md transition-colors"
-          >
-            <LogOut className="w-4 h-4 mr-2" />
-            Logout
-          </button>
-        </div>
-      </aside>
-
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col min-w-0">
-        <header className="h-16 bg-card border-b flex items-center justify-between px-8 shrink-0">
-          <h2 className="text-lg font-semibold capitalize">{user.role} Portal</h2>
-          <div className="flex items-center gap-3">
-            <div className="text-right hidden sm:block">
-              <p className="text-sm font-medium">{user.fullName}</p>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{user.companyName || user.role}</p>
-            </div>
-            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs overflow-hidden border border-border/50">
-              {user.profileImage ? (
-                <img src={user.profileImage} alt="Profile" className="w-full h-full object-cover" />
-              ) : (
-                user.fullName.charAt(0)
-              )}
-            </div>
+        <aside
+          className={cn(
+            'fixed inset-y-0 left-0 z-40 flex w-72 max-w-[85vw] flex-col border-r bg-card shadow-xl transition-transform duration-300 ease-in-out lg:max-w-none lg:shadow-none',
+            sidebarVisible ? 'translate-x-0' : '-translate-x-full'
+          )}
+        >
+          <div className="flex h-16 items-center justify-between border-b px-4 sm:px-6">
+            <button
+              type="button"
+              onClick={() => navigate(user.role === 'company' ? '/company/dashboard' : '/employee/dashboard')}
+              className="font-bold text-xl text-primary tracking-tight"
+            >
+              ProjectFlow
+            </button>
+            <button
+              type="button"
+              onClick={toggleSidebar}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-border/70 text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              aria-label={isDesktop ? 'Hide sidebar' : 'Close sidebar'}
+            >
+              {isDesktop ? <ChevronLeft className="h-5 w-5" /> : <X className="h-5 w-5" />}
+            </button>
           </div>
-        </header>
-        <div className="p-8 flex-1 overflow-y-auto">
-          <Outlet />
-        </div>
-      </main>
+
+          <nav className="flex-1 overflow-y-auto py-4">
+            <ul className="space-y-1 px-3">
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                const active = isActive(item.path);
+
+                return (
+                  <li key={item.name}>
+                    <button
+                      type="button"
+                      onClick={() => navigate(item.path)}
+                      className={cn(
+                        'w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition-all',
+                        active
+                          ? 'bg-primary text-primary-foreground shadow-sm'
+                          : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                      )}
+                    >
+                      <Icon className="h-5 w-5 shrink-0" />
+                      <span className="truncate">{item.name}</span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
+
+          <div className="space-y-2 border-t border-border p-4">
+            <button
+              type="button"
+              onClick={() => navigate('/profile')}
+              className={cn(
+                'w-full flex items-center gap-3 rounded-lg p-2 text-left transition-colors',
+                location.pathname === '/profile'
+                  ? 'bg-primary/10'
+                  : 'hover:bg-accent'
+              )}
+            >
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border/50 bg-primary/20 font-bold text-primary">
+                {user.profileImage ? (
+                  <img src={user.profileImage} alt="Profile" className="h-full w-full object-cover" />
+                ) : (
+                  user.fullName.charAt(0)
+                )}
+              </div>
+              <div className="overflow-hidden">
+                <p className="truncate text-sm font-medium">{user.fullName}</p>
+                <p className="text-xs capitalize text-muted-foreground">{user.role}</p>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="w-full flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
+            >
+              <LogOut className="h-4 w-4 shrink-0" />
+              <span>Logout</span>
+            </button>
+          </div>
+        </aside>
+
+        <main className="flex min-h-screen min-w-0 flex-1 flex-col">
+          <header className="flex h-16 shrink-0 items-center justify-between gap-3 border-b bg-card/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-card/80 sm:px-6 lg:px-8">
+            <div className="flex min-w-0 items-center gap-3">
+              <button
+                type="button"
+                onClick={toggleSidebar}
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-border/70 bg-background px-3 text-sm font-medium text-foreground hover:bg-accent"
+                aria-label={sidebarVisible ? 'Hide sidebar' : 'Show sidebar'}
+              >
+                <Menu className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline">
+                  {sidebarVisible ? 'Hide Menu' : 'Show Menu'}
+                </span>
+              </button>
+              <div className="min-w-0">
+                <h2 className="truncate text-base font-semibold capitalize sm:text-lg">{user.role} Portal</h2>
+                <p className="hidden text-xs text-muted-foreground sm:block">
+                  Manage projects and tasks across all screen sizes.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="hidden text-right sm:block">
+                <p className="text-sm font-medium">{user.fullName}</p>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                  {user.companyName || user.role}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => navigate('/profile')}
+                className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-border/50 bg-primary/10 text-xs font-bold text-primary"
+                aria-label="Open profile"
+              >
+                {user.profileImage ? (
+                  <img src={user.profileImage} alt="Profile" className="h-full w-full object-cover" />
+                ) : (
+                  user.fullName.charAt(0)
+                )}
+              </button>
+            </div>
+          </header>
+
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+            <Outlet />
+          </div>
+        </main>
+      </div>
     </div>
   );
 };

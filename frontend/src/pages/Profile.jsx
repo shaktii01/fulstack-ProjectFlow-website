@@ -73,9 +73,9 @@ const Profile = () => {
   };
 
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="max-w-3xl space-y-6">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Settings</h2>
+        <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Settings</h2>
         <p className="text-muted-foreground">Manage your {isCompany ? 'company & ' : ''}account settings.</p>
       </div>
 
@@ -92,8 +92,8 @@ const Profile = () => {
       {/* Profile Header Card */}
       <Card>
         <CardContent className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-4">
+          <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-center gap-4">
               <div className="w-16 h-16 rounded-2xl bg-primary/15 flex items-center justify-center text-primary font-bold text-2xl overflow-hidden border border-border/50">
                 {user?.profileImage ? (
                   <img src={user.profileImage} alt="Profile" className="w-full h-full object-cover" />
@@ -101,9 +101,9 @@ const Profile = () => {
                   user?.fullName?.charAt(0)
                 )}
               </div>
-              <div>
-                <h3 className="text-lg font-semibold">{user?.fullName}</h3>
-                <div className="flex items-center gap-2 mt-1">
+              <div className="min-w-0">
+                <h3 className="truncate text-lg font-semibold">{user?.fullName}</h3>
+                <div className="mt-1 flex flex-wrap items-center gap-2">
                   <Badge variant="default" className="capitalize">{user?.role}</Badge>
                   {isCompany && user?.companyName && (
                     <span className="text-sm text-muted-foreground">{user.companyName}</span>
@@ -112,7 +112,7 @@ const Profile = () => {
               </div>
             </div>
             {!editing && (
-              <Button variant="outline" size="sm" onClick={startEditing}>
+              <Button variant="outline" size="sm" className="w-full sm:w-auto" onClick={startEditing}>
                 Edit Settings
               </Button>
             )}
@@ -183,7 +183,7 @@ const Profile = () => {
                 </div>
               </div>
 
-              <div className="flex gap-2 pt-4">
+              <div className="flex flex-col gap-2 pt-4 sm:flex-row">
                 <Button onClick={handleSave} disabled={updateMutation.isPending}>
                   <Save className="h-4 w-4 mr-2" />
                   {updateMutation.isPending ? 'Saving...' : 'Save Changes'}

@@ -38,12 +38,12 @@ const CompanyDashboard = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Dashboard</h2>
           <p className="text-muted-foreground mt-1">Welcome back, {user?.fullName}. Here's your company overview.</p>
         </div>
         <div className="flex flex-col items-start md:items-end gap-1">
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Invitation Code</p>
-          <div className="inline-flex items-center rounded-lg border border-primary/20 bg-primary/5 px-4 py-2 text-lg font-mono font-bold text-primary tracking-[0.25em]">
+          <div className="inline-flex max-w-full items-center overflow-x-auto rounded-lg border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-mono font-bold text-primary tracking-[0.2em] sm:text-lg sm:tracking-[0.25em]">
             {user?.invitationCode}
           </div>
         </div>

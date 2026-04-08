@@ -84,16 +84,16 @@ const ProjectDetail = () => {
         </button>
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <Badge variant="outline" className="font-mono">{project.code}</Badge>
-              <h2 className="text-3xl font-bold tracking-tight">{project.name}</h2>
+              <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">{project.name}</h2>
             </div>
             {project.description && <p className="text-muted-foreground mt-1">{project.description}</p>}
           </div>
           {isCompany && (
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => setEditProjectOpen(true)}>Edit</Button>
-              <Button variant="outline" size="sm" onClick={handleDeleteProject}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+              <Button variant="outline" size="sm" className="w-full sm:w-auto" onClick={() => setEditProjectOpen(true)}>Edit</Button>
+              <Button variant="outline" size="sm" className="w-full sm:w-auto" onClick={handleDeleteProject}><Trash2 className="h-4 w-4 text-destructive" /></Button>
             </div>
           )}
         </div>
@@ -101,7 +101,7 @@ const ProjectDetail = () => {
 
       {/* Members + Info Bar */}
       <div className="flex flex-wrap gap-4">
-        <Card className="flex-1 min-w-[200px]">
+        <Card className="min-w-0 flex-1">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -130,7 +130,7 @@ const ProjectDetail = () => {
           </CardContent>
         </Card>
         {project.startDate && (
-          <Card className="min-w-[150px]">
+          <Card className="w-full sm:w-auto sm:min-w-[150px]">
             <CardContent className="p-4 flex items-center gap-2">
               <Calendar className="h-4 w-4 text-muted-foreground" />
               <div className="text-sm">
@@ -141,7 +141,7 @@ const ProjectDetail = () => {
           </Card>
         )}
         {project.endDate && (
-          <Card className="min-w-[150px]">
+          <Card className="w-full sm:w-auto sm:min-w-[150px]">
             <CardContent className="p-4 flex items-center gap-2">
               <Calendar className="h-4 w-4 text-muted-foreground" />
               <div className="text-sm">
@@ -154,10 +154,10 @@ const ProjectDetail = () => {
       </div>
 
       {/* Tasks Section */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h3 className="text-xl font-semibold">Tasks</h3>
         {isCompany && (
-          <Button size="sm" onClick={() => setCreateTaskOpen(true)}>
+          <Button size="sm" className="w-full sm:w-auto" onClick={() => setCreateTaskOpen(true)}>
             <Plus className="h-4 w-4 mr-1.5" /> Add Task
           </Button>
         )}

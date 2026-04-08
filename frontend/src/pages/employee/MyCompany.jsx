@@ -28,13 +28,13 @@ const MyCompany = () => {
     return (
       <div className="space-y-6 max-w-2xl">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">My Company</h2>
+          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">My Company</h2>
           <p className="text-muted-foreground">Your organization details.</p>
         </div>
 
         <Card>
           <CardContent className="p-6">
-            <div className="flex items-center gap-4 mb-6 pb-6 border-b">
+            <div className="mb-6 flex flex-col items-start gap-4 border-b pb-6 sm:flex-row sm:items-center">
               <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-bold text-2xl overflow-hidden border border-border/50 shrink-0">
                 {company.profileImage ? (
                   <img src={company.profileImage} alt="Logo" className="w-full h-full object-cover" />
@@ -115,7 +115,7 @@ const MyCompany = () => {
     return (
       <div className="space-y-6 max-w-2xl">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">My Company</h2>
+          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">My Company</h2>
           <p className="text-muted-foreground">Your organization details.</p>
         </div>
 
@@ -143,7 +143,7 @@ const MyCompany = () => {
     return (
       <div className="space-y-6 max-w-2xl">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">My Company</h2>
+          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">My Company</h2>
           <p className="text-muted-foreground">Your organization details.</p>
         </div>
 
@@ -168,7 +168,7 @@ const MyCompany = () => {
   return (
     <div className="space-y-6 max-w-2xl">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">My Company</h2>
+        <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">My Company</h2>
         <p className="text-muted-foreground">Your organization details.</p>
       </div>
 

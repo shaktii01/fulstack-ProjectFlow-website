@@ -36,7 +36,7 @@ const JoinRequests = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Join Requests</h2>
+        <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Join Requests</h2>
         <p className="text-muted-foreground">Review and manage employee join requests.</p>
       </div>
 

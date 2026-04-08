@@ -54,7 +54,7 @@ const EditProjectModal = ({ open, onClose, project }) => {
             <label className="text-sm font-medium">Description</label>
             <Textarea value={projectForm.description || ''} onChange={(e) => setProjectForm({ ...projectForm, description: e.target.value })} />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <label className="text-sm font-medium">Start Date</label>
               <Input type="date" value={projectForm.startDate || ''} onChange={(e) => setProjectForm({ ...projectForm, startDate: e.target.value })} />

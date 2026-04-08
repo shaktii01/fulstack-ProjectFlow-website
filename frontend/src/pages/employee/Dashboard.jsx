@@ -40,7 +40,7 @@ const EmployeeDashboard = () => {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Welcome back, {user?.fullName?.split(' ')[0]}!</h2>
+        <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Welcome back, {user?.fullName?.split(' ')[0]}!</h2>
         <p className="text-muted-foreground mt-1">Here's an overview of your work today.</p>
       </div>
 

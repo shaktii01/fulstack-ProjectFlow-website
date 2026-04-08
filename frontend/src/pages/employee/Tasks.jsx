@@ -53,19 +53,19 @@ const EmployeeTasks = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">My Tasks</h2>
+          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">My Tasks</h2>
           <p className="text-muted-foreground">View and update your assigned tasks.</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
           <Filter className="h-4 w-4 text-muted-foreground" />
-          <Select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="w-36 h-9 text-xs">
+          <Select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="h-9 w-full text-xs sm:w-36">
             <option value="all">All Status</option>
             <option value="todo">To Do</option>
             <option value="in_progress">In Progress</option>
             <option value="review">In Review</option>
             <option value="done">Done</option>
           </Select>
-          <Select value={filterPriority} onChange={(e) => setFilterPriority(e.target.value)} className="w-36 h-9 text-xs">
+          <Select value={filterPriority} onChange={(e) => setFilterPriority(e.target.value)} className="h-9 w-full text-xs sm:w-36">
             <option value="all">All Priority</option>
             <option value="low">Low</option>
             <option value="medium">Medium</option>
@@ -102,7 +102,7 @@ const EmployeeTasks = () => {
                       <Badge variant={priorityColors[task.priority]} className="text-[10px]">{task.priority}</Badge>
                       <Badge variant="outline" className="text-[10px] capitalize">{task.taskType}</Badge>
                     </div>
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                       <span>{task.project?.name}</span>
                       {task.dueDate && (
                         <div className="flex items-center gap-1">
@@ -116,7 +116,7 @@ const EmployeeTasks = () => {
                   <Select
                     value={task.status}
                     onChange={(e) => updateStatusMutation.mutate({ taskId: task._id, status: e.target.value })}
-                    className="w-36 h-9 text-xs"
+                    className="h-9 w-full text-xs sm:w-36"
                   >
                     <option value="todo">To Do</option>
                     <option value="in_progress">In Progress</option>

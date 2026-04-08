@@ -55,7 +55,7 @@ const CreateTaskModal = ({ open, onClose, projectId, members }) => {
             <label className="text-sm font-medium">Description</label>
             <Textarea value={taskForm.description} onChange={(e) => setTaskForm({ ...taskForm, description: e.target.value })} placeholder="Describe what needs to be done..." />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <label className="text-sm font-medium">Type</label>
               <Select value={taskForm.taskType} onChange={(e) => setTaskForm({ ...taskForm, taskType: e.target.value })}>

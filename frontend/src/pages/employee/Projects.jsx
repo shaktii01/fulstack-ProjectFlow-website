@@ -24,7 +24,7 @@ const EmployeeProjects = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">My Projects</h2>
+        <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">My Projects</h2>
         <p className="text-muted-foreground">Projects you are a member of.</p>
       </div>
 
@@ -59,7 +59,7 @@ const EmployeeProjects = () => {
                 {project.description && (
                   <p className="text-sm text-muted-foreground line-clamp-2 mb-4">{project.description}</p>
                 )}
-                <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <Users className="h-3.5 w-3.5" />
                     <span>{project.members?.length || 0} members</span>

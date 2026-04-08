@@ -181,7 +181,7 @@ const TaskDetail = ({ taskId, projectId, onClose }) => {
               </div>
 
               {/* Meta info */}
-              <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="grid gap-4 text-sm sm:grid-cols-2">
                 {task.assignedTo && (
                   <div className="flex items-center gap-2">
                     <UserIcon className="h-4 w-4 text-muted-foreground" />
@@ -219,13 +219,13 @@ const TaskDetail = ({ taskId, projectId, onClose }) => {
 
               {/* Action Buttons */}
               {isCompany && !editing && (
-                <div className="flex gap-2 pt-2 border-t">
+                <div className="flex flex-col gap-2 border-t pt-2 sm:flex-row">
                   <Button size="sm" variant="outline" onClick={openEdit}>Edit Task</Button>
                   <Button size="sm" variant="ghost" onClick={handleDelete}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                 </div>
               )}
               {editing && (
-                <div className="flex gap-2 pt-2 border-t">
+                <div className="flex flex-col gap-2 border-t pt-2 sm:flex-row">
                   <Button size="sm" onClick={handleSaveEdit} disabled={updateMutation.isPending}>
                     {updateMutation.isPending ? 'Saving...' : 'Save'}
                   </Button>
@@ -265,14 +265,14 @@ const TaskDetail = ({ taskId, projectId, onClose }) => {
                   )}
                 </div>
 
-                <form onSubmit={handleComment} className="flex gap-2">
+                <form onSubmit={handleComment} className="flex flex-col gap-2 sm:flex-row">
                   <Input
                     value={commentText}
                     onChange={(e) => setCommentText(e.target.value)}
                     placeholder="Write a comment..."
                     className="flex-1"
                   />
-                  <Button type="submit" size="icon" disabled={addCommentMutation.isPending || !commentText.trim()}>
+                  <Button type="submit" size="icon" className="w-full sm:w-10" disabled={addCommentMutation.isPending || !commentText.trim()}>
                     <Send className="h-4 w-4" />
                   </Button>
                 </form>
