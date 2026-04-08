@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import api from '../../lib/api';
-import useAuthStore from '../../store/authStore';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
-import { Badge } from '../../components/ui/badge';
-import { Select } from '../../components/ui/select';
-import TaskDetailModal from '../../components/tasks/TaskDetailModal';
+import api from '@/lib/api';
+import useAuthStore from '@/store/authStore';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Select } from '@/components/ui/select';
+import TaskDetailModal from '@/components/tasks/TaskDetailModal';
 import { ListTodo, Clock, User as UserIcon, Filter } from 'lucide-react';
 
 const priorityColors = { low: 'info', medium: 'warning', high: 'destructive', urgent: 'destructive' };

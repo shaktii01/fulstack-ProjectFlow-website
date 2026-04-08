@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import api from '../../lib/api';
+import api from '@/lib/api';
 import { Dialog, DialogHeader, DialogTitle, DialogContent, DialogFooter, DialogClose } from '../ui/dialog';
-import { Button } from '../ui/button';
-import { Select } from '../ui/select';
+import { Button } from '@/components/ui/button';
+import { Select } from '@/components/ui/select';
 
 const AddMemberModal = ({ open, onClose, project, employees }) => {
   const queryClient = useQueryClient();

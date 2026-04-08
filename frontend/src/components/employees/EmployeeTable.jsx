@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent } from '../ui/card';
-import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Users, Pencil, Trash2 } from 'lucide-react';
 
 const EmployeeTable = ({ employees, onEdit, onRemove }) => {

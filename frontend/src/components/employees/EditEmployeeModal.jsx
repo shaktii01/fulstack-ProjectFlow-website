@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import api from '../../lib/api';
+import api from '@/lib/api';
 import { Dialog, DialogHeader, DialogTitle, DialogContent, DialogFooter, DialogClose } from '../ui/dialog';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 const EditEmployeeModal = ({ open, onClose, employee }) => {
   const queryClient = useQueryClient();

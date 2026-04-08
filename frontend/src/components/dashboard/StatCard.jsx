@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 const StatCard = ({ title, value, icon: Icon, description, variant = 'default', onClick }) => (
   <Card className={`${onClick ? 'cursor-pointer hover:shadow-lg hover:scale-[1.02]' : ''} transition-all`} onClick={onClick}>

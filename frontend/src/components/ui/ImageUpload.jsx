@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { Camera, Loader2, AlertCircle } from 'lucide-react';
-import api from '../../lib/api';
+import api from '@/lib/api';
 
 /**
  * ImageUpload — reusable avatar/logo uploader via ImageKit.

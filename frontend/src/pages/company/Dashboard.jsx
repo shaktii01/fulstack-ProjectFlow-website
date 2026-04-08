@@ -1,12 +1,12 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import api from '../../lib/api';
+import api from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
-import { Badge } from '../../components/ui/badge';
+import { Badge } from '@/components/ui/badge';
 import { Users, FolderKanban, CheckCircle, AlertCircle, ListTodo, Clock, TrendingUp, ArrowRight } from 'lucide-react';
-import useAuthStore from '../../store/authStore';
-import StatCard from '../../components/dashboard/StatCard';
+import useAuthStore from '@/store/authStore';
+import StatCard from '@/components/dashboard/StatCard';
 
 const CompanyDashboard = () => {
   const user = useAuthStore(state => state.user);

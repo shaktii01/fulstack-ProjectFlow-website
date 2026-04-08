@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import api from '../../lib/api';
-import { Input } from '../../components/ui/input';
+import api from '@/lib/api';
+import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
-import EmployeeTable from '../../components/employees/EmployeeTable';
-import EditEmployeeModal from '../../components/employees/EditEmployeeModal';
+import EmployeeTable from '@/components/employees/EmployeeTable';
+import EditEmployeeModal from '@/components/employees/EditEmployeeModal';
 
 const Employees = () => {
   const queryClient = useQueryClient();

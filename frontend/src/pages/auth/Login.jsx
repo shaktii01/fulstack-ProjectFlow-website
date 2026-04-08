@@ -3,10 +3,10 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useNavigate, Link } from 'react-router-dom';
-import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
-import AuthLayout from '../../components/auth/AuthLayout';
-import useAuthStore from '../../store/authStore';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import AuthLayout from '@/components/auth/AuthLayout';
+import useAuthStore from '@/store/authStore';
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Invalid email address' }),

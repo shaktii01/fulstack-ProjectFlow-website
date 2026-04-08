@@ -3,11 +3,11 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
-import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
-import api from '../../lib/api';
+import api from '@/lib/api';
 
 const resetPasswordSchema = z.object({
   password: z.string().min(6, { message: 'Password must be at least 6 characters' }),

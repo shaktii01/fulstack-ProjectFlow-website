@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import api from '../../lib/api';
-import { Card, CardContent } from '../ui/card';
-import { Badge } from '../ui/badge';
+import api from '@/lib/api';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Clock, User as UserIcon, GripVertical } from 'lucide-react';
-import useAuthStore from '../../store/authStore';
+import useAuthStore from './../../store/authStore';
 
 const priorityColors = { low: 'info', medium: 'warning', high: 'destructive', urgent: 'destructive' };
 const statusColors = { todo: 'secondary', in_progress: 'warning', review: 'info', done: 'success' };

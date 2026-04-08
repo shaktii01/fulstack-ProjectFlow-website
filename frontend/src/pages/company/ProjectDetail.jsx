@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import api from '../../lib/api';
-import useAuthStore from '../../store/authStore';
-import { Card, CardContent } from '../../components/ui/card';
-import { Button } from '../../components/ui/button';
-import { Badge } from '../../components/ui/badge';
-import TaskDetailModal from '../../components/tasks/TaskDetailModal';
-import CreateTaskModal from '../../components/projects/CreateTaskModal';
-import EditProjectModal from '../../components/projects/EditProjectModal';
-import AddMemberModal from '../../components/projects/AddMemberModal';
-import KanbanBoard from '../../components/projects/KanbanBoard';
+import api from '@/lib/api';
+import useAuthStore from '@/store/authStore';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import TaskDetailModal from '@/components/tasks/TaskDetailModal';
+import CreateTaskModal from '@/components/projects/CreateTaskModal';
+import EditProjectModal from '@/components/projects/EditProjectModal';
+import AddMemberModal from '@/components/projects/AddMemberModal';
+import KanbanBoard from '@/components/projects/KanbanBoard';
 import { ArrowLeft, Plus, Users, Calendar, Trash2 } from 'lucide-react';
 
 const ProjectDetail = () => {
