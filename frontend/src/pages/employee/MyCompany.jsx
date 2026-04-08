@@ -171,7 +171,6 @@ const MyCompany = () => {
   // Accepted - Show full company details
   if (data?.status === 'accepted' && data.company) {
     const company = data.company;
-    const employee = data.employee;
     return (
       <div className="max-w-4xl space-y-6">
         <PageHeader />
@@ -252,91 +251,7 @@ const MyCompany = () => {
             </CardContent>
           </Card>
 
-          {employee && (
-            <Card>
-              <CardContent className="p-6">
-                <div className="mb-6 flex items-center gap-4 border-b pb-6">
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border/50 bg-primary/10 text-lg font-bold text-primary">
-                    {employee.profileImage ? (
-                      <img src={employee.profileImage} alt={employee.fullName} className="h-full w-full object-cover" />
-                    ) : (
-                      employee.fullName?.charAt(0) || 'E'
-                    )}
-                  </div>
-                  <div className="min-w-0">
-                    <h3 className="truncate text-lg font-semibold">Your Employee Profile</h3>
-                    <p className="truncate text-sm text-muted-foreground">{employee.fullName}</p>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <Mail className="h-4 w-4 text-muted-foreground shrink-0" />
-                    <div>
-                      <p className="text-xs text-muted-foreground">Work Email</p>
-                      <p className="text-sm font-medium">{employee.email}</p>
-                    </div>
-                  </div>
-
-                  {employee.phone && (
-                    <div className="flex items-center gap-3">
-                      <Phone className="h-4 w-4 text-muted-foreground shrink-0" />
-                      <div>
-                        <p className="text-xs text-muted-foreground">Phone</p>
-                        <p className="text-sm font-medium">{employee.phone}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex items-center gap-3">
-                    <User className="h-4 w-4 text-muted-foreground shrink-0" />
-                    <div>
-                      <p className="text-xs text-muted-foreground">Department</p>
-                      <p className="text-sm font-medium">{employee.department || 'Not assigned yet'}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <BriefcaseBusiness className="h-4 w-4 text-muted-foreground shrink-0" />
-                    <div>
-                      <p className="text-xs text-muted-foreground">Designation</p>
-                      <p className="text-sm font-medium">{employee.designation || 'Not assigned yet'}</p>
-                    </div>
-                  </div>
-
-                  {employee.address && (
-                    <div className="flex items-center gap-3">
-                      <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
-                      <div>
-                        <p className="text-xs text-muted-foreground">Address</p>
-                        <p className="text-sm font-medium">{employee.address}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {employee.bio && (
-                    <div className="pt-4 border-t">
-                      <div className="mb-1 flex items-center gap-2">
-                        <FileText className="h-4 w-4 text-muted-foreground" />
-                        <p className="text-xs text-muted-foreground">About You</p>
-                      </div>
-                      <p className="text-sm">{employee.bio}</p>
-                    </div>
-                  )}
-
-                  <div className="flex items-center gap-3 pt-2">
-                    <Clock className="h-4 w-4 text-muted-foreground shrink-0" />
-                    <div>
-                      <p className="text-xs text-muted-foreground">Member Since</p>
-                      <p className="text-sm font-medium">
-                        {new Date(employee.joinedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          
         </div>
       </div>
     );
