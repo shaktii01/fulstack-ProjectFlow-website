@@ -33,6 +33,8 @@ services:
       - key: SMTP_FROM
         value: ProjectFlow <shaktisinghh40@gmail.com>
       - key: FRONTEND_URL
+        value: https://project-flow-full-stack-task-manage-six.vercel.app
+      - key: FRONTEND_URL_ALT
         value: https://project-flow-full-stack-task-management-5nms-pkggffstz.vercel.app
   
   - type: web

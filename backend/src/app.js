@@ -18,8 +18,19 @@ import uploadRoutes from './routes/uploadRoutes.js';
 const app = express();
 
 // Middlewares
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  process.env.FRONTEND_URL_ALT,
+  'http://localhost:5173',
+  'http://localhost:3000',
+].filter(Boolean);
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL, 
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error(`CORS policy does not allow access from origin ${origin}`));
+  },
   credentials: true,
 }));
 
