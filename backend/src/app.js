@@ -5,6 +5,7 @@ import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 
 import { notFound, errorHandler } from './middlewares/errorMiddleware.js';
+import { getAllowedOrigins } from './utils/clientConfig.js';
 
 // Route imports
 import authRoutes from './routes/authRoutes.js';
@@ -18,11 +19,7 @@ import uploadRoutes from './routes/uploadRoutes.js';
 const app = express();
 
 // Middlewares
-const allowedOrigins = [
-  process.env.FRONTEND_URL,
-  'http://localhost:5173',
-  'http://localhost:3000',
-].filter(Boolean);
+const allowedOrigins = getAllowedOrigins();
 
 app.use(cors({
   origin: (origin, callback) => {

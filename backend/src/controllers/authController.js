@@ -2,6 +2,7 @@ import asyncHandler from 'express-async-handler';
 import User from '../models/User.js';
 import JoinRequest from '../models/JoinRequest.js';
 import generateToken from '../utils/generateToken.js';
+import { getAuthCookieOptions, getPrimaryFrontendUrl } from '../utils/clientConfig.js';
 import sendEmail from '../utils/sendEmail.js';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
@@ -127,8 +128,9 @@ const loginUser = asyncHandler(async (req, res) => {
 
 const logoutUser = asyncHandler(async (req, res) => {
   res.cookie('jwt', '', {
-    httpOnly: true,
+    ...getAuthCookieOptions(),
     expires: new Date(0),
+    maxAge: 0,
   });
   res.status(200).json({ message: 'Logged out successfully' });
 });
@@ -190,7 +192,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
   await user.save({ validateBeforeSave: false });
 
   // Create reset url
-  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+  const frontendUrl = getPrimaryFrontendUrl();
   const resetUrl = `${frontendUrl}/reset-password/${resetToken}`;
 
   const message = `You are receiving this email because you (or someone else) has requested the reset of a password. Please make a PUT request to: \n\n ${resetUrl}`;

@@ -33,9 +33,9 @@ services:
       - key: SMTP_FROM
         value: ProjectFlow <shaktisinghh40@gmail.com>
       - key: FRONTEND_URL
-        value: https://project-flow-full-stack-task-manage-six.vercel.app
-      - key: FRONTEND_URL_ALT
-        value: https://project-flow-full-stack-task-management-5nms-pkggffstz.vercel.app
+        value: https://projectfolw.netlify.app
+      - key: FRONTEND_URLS
+        value: https://projectfolw.netlify.app,http://localhost:5173,http://localhost:3000
   
   - type: web
     name: frontend
