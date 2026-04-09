@@ -20,7 +20,6 @@ const app = express();
 // Middlewares
 const allowedOrigins = [
   process.env.FRONTEND_URL,
-  process.env.FRONTEND_URL_ALT,
   'http://localhost:5173',
   'http://localhost:3000',
 ].filter(Boolean);
@@ -33,6 +32,8 @@ app.use(cors({
   },
   credentials: true,
 }));
+
+
 
 app.use(helmet());
 app.use(morgan('dev'));
