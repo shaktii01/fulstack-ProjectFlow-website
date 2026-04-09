@@ -8,6 +8,32 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      - key: MONGO_URI
+        value: mongodb://shakti01:OYi5ArWdQDOOBoB1@ac-dfpircg-shard-00-00.dhgnuzi.mongodb.net:27017,ac-dfpircg-shard-00-01.dhgnuzi.mongodb.net:27017,ac-dfpircg-shard-00-02.dhgnuzi.mongodb.net:27017/?ssl=true&replicaSet=atlas-ggz4tk-shard-0&authSource=admin&appName=Cluster0/projectflow
+      - key: JWT_SECRET
+        value: supersecretjwtkeythatshouldbechanged
+      - key: JWT_EXPIRE
+        value: 30d
+      - key: IMAGEKIT_PUBLIC_KEY
+        value: public_qxSfnlC3uG8HN40Obl3OQaK0Iuk=
+      - key: IMAGEKIT_PRIVATE_KEY
+        value: private_JC5Q6GgetgfnzjUNA2dFAEyhao8=
+      - key: IMAGEKIT_URL_ENDPOINT
+        value: https://ik.imagekit.io/Shaktiisingh123
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: 465
+      - key: SMTP_SECURE
+        value: true
+      - key: SMTP_USER
+        value: shaktisinghh40@gmail.com
+      - key: SMTP_PASS
+        value: uvvomhlubduhhbxj
+      - key: SMTP_FROM
+        value: ProjectFlow <shaktisinghh40@gmail.com>
+      - key: FRONTEND_URL
+        value: https://project-flow-full-stack-task-management-5nms-pkggffstz.vercel.app
   
   - type: web
     name: frontend

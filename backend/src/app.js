@@ -19,7 +19,7 @@ const app = express();
 
 // Middlewares
 app.use(cors({
-  origin: true, // Dynamically reflects request origin
+  origin: process.env.FRONTEND_URL, 
   credentials: true,
 }));
 
