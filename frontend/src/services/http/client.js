@@ -14,6 +14,7 @@ const CSRF_HEADER_NAME = 'X-CSRF-Token';
 const SAFE_METHODS = new Set(['get', 'head', 'options']);
 
 let csrfBootstrapPromise = null;
+let memoryCsrfToken = null;
 
 const readCookie = (name) => {
   if (typeof document === 'undefined') return '';
@@ -30,6 +31,11 @@ const fetchCsrfToken = async () => {
   if (!csrfBootstrapPromise) {
     csrfBootstrapPromise = httpClient
       .get('/auth/csrf-token')
+      .then((response) => {
+        if (response.data && response.data.csrfToken) {
+          memoryCsrfToken = response.data.csrfToken;
+        }
+      })
       .finally(() => {
         csrfBootstrapPromise = null;
       });
@@ -39,11 +45,11 @@ const fetchCsrfToken = async () => {
 };
 
 export const ensureCsrfToken = async () => {
-  const token = readCookie(CSRF_COOKIE_NAME);
+  const token = readCookie(CSRF_COOKIE_NAME) || memoryCsrfToken;
   if (token) return token;
 
   await fetchCsrfToken();
-  return readCookie(CSRF_COOKIE_NAME);
+  return memoryCsrfToken || readCookie(CSRF_COOKIE_NAME);
 };
 
 httpClient.interceptors.request.use(async (config) => {
@@ -60,6 +66,13 @@ httpClient.interceptors.request.use(async (config) => {
   }
 
   return config;
+});
+
+httpClient.interceptors.response.use((response) => {
+  if (response.data && response.data.csrfToken) {
+    memoryCsrfToken = response.data.csrfToken;
+  }
+  return response;
 });
 
 export default httpClient;

@@ -24,7 +24,7 @@ const registerCompany = asyncHandler(async (req, res) => {
 
   const user = await registerCompanyUser(req.body);
   generateToken(res, user._id);
-  issueCsrfToken(req, res);
+  const csrfToken = issueCsrfToken(req, res);
 
   res.status(201).json({
     _id: user._id,
@@ -33,6 +33,7 @@ const registerCompany = asyncHandler(async (req, res) => {
     role: user.role,
     companyName: user.companyName,
     invitationCode: user.invitationCode,
+    csrfToken,
   });
 });
 
@@ -41,13 +42,14 @@ const registerEmployee = asyncHandler(async (req, res) => {
 
   const user = await registerEmployeeUser(req.body);
   generateToken(res, user._id);
-  issueCsrfToken(req, res);
+  const csrfToken = issueCsrfToken(req, res);
 
   res.status(201).json({
     _id: user._id,
     fullName: user.fullName,
     email: user.email,
     role: user.role,
+    csrfToken,
   });
 });
 
@@ -56,7 +58,7 @@ const loginUser = asyncHandler(async (req, res) => {
 
   const user = await authenticateUser(req.body);
   generateToken(res, user._id);
-  issueCsrfToken(req, res);
+  const csrfToken = issueCsrfToken(req, res);
 
   res.json({
     _id: user._id,
@@ -64,6 +66,7 @@ const loginUser = asyncHandler(async (req, res) => {
     email: user.email,
     role: user.role,
     companyId: user.companyId,
+    csrfToken,
   });
 });
 
@@ -85,8 +88,8 @@ const getUserProfile = asyncHandler(async (req, res) => {
 
 const getAuthSession = asyncHandler(async (req, res) => {
   const user = await getSessionUserFromToken(req.cookies.jwt);
-  issueCsrfToken(req, res);
-  res.json({ user });
+  const csrfToken = issueCsrfToken(req, res);
+  res.json({ user, csrfToken });
 });
 
 const getCsrfToken = asyncHandler(async (req, res) => {
