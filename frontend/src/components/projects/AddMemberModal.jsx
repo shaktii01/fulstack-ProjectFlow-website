@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import api from '@/lib/api';
 import { Dialog, DialogHeader, DialogTitle, DialogContent, DialogFooter, DialogClose } from '../ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
+import { updateProject } from '@/services/projectService';
+import { QUERY_KEYS } from '@/constants/queryKeys';
 
 const AddMemberModal = ({ open, onClose, project, employees }) => {
   const queryClient = useQueryClient();
@@ -13,11 +14,10 @@ const AddMemberModal = ({ open, onClose, project, employees }) => {
   const addMemberMutation = useMutation({
     mutationFn: async (memberId) => {
       const currentMembers = project.members.map(m => m._id);
-      const res = await api.put(`/projects/${project._id}`, { members: [...currentMembers, memberId] });
-      return res.data;
+      return updateProject(project._id, { members: [...currentMembers, memberId] });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['project', project._id] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.PROJECT_DETAIL(project._id) });
       resetAndClose();
     },
     onError: (err) => setError(err.response?.data?.message || 'Failed to add member'),

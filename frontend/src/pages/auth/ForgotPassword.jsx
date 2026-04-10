@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { AlertCircle, CheckCircle2, ArrowLeft } from 'lucide-react';
-import api from '@/lib/api';
+import { requestPasswordReset } from '@/services/authService';
+import { ROUTE_PATHS } from '@/routes/routePaths';
 
 const forgotPasswordSchema = z.object({
   email: z.string().email({ message: 'Invalid email address' }),
@@ -26,7 +27,7 @@ const ForgotPassword = () => {
       setLoading(true);
       setErrorMsg('');
       setSuccess(false);
-      await api.post('/auth/forgot-password', data);
+      await requestPasswordReset(data);
       setSuccess(true);
     } catch (error) {
       setErrorMsg(error.response?.data?.message || 'Failed to send reset link. Try again later.');
@@ -38,7 +39,7 @@ const ForgotPassword = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted/40 p-4">
       <div className="w-full max-w-md">
-        <Link to="/login" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-6 transition-colors">
+        <Link to={ROUTE_PATHS.LOGIN} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-6 transition-colors">
           <ArrowLeft className="h-4 w-4" /> Back to login
         </Link>
         <Card className="shadow-lg border-none">

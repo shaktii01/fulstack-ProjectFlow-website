@@ -1,32 +1,27 @@
 import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import api from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '@/components/ui/button';
 import RefreshButton from '@/components/ui/refresh-button';
 import UserAvatar from '@/components/ui/user-avatar';
 import { Inbox, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { getCompanyJoinRequests, updateCompanyJoinRequest } from '@/services/companyService';
+import { QUERY_KEYS } from '@/constants/queryKeys';
 
 const JoinRequests = () => {
   const queryClient = useQueryClient();
 
   const { data: requests = [], isLoading, isFetching, refetch } = useQuery({
-    queryKey: ['joinRequests'],
-    queryFn: async () => {
-      const res = await api.get('/company/requests');
-      return res.data;
-    },
+    queryKey: QUERY_KEYS.COMPANY_REQUESTS,
+    queryFn: getCompanyJoinRequests,
   });
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, status }) => {
-      const res = await api.put(`/company/requests/${id}`, { status });
-      return res.data;
-    },
+    mutationFn: ({ id, status }) => updateCompanyJoinRequest(id, status),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['joinRequests'] });
-      queryClient.invalidateQueries({ queryKey: ['companyStats'] });
-      queryClient.invalidateQueries({ queryKey: ['companyEmployees'] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.COMPANY_REQUESTS });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.COMPANY_STATS });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.COMPANY_EMPLOYEES });
     },
   });
 

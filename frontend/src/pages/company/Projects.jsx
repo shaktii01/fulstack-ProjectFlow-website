@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import api from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +10,9 @@ import { Dialog, DialogHeader, DialogTitle, DialogContent, DialogFooter, DialogC
 import ProjectMembersModal from '@/components/projects/ProjectMembersModal';
 import RefreshButton from '@/components/ui/refresh-button';
 import { Plus, FolderKanban, Users, Calendar, ArrowRight } from 'lucide-react';
+import { createProject, getProjects } from '@/services/projectService';
+import { QUERY_KEYS } from '@/constants/queryKeys';
+import { ROUTE_PATH_BUILDERS } from '@/routes/routePaths';
 
 const Projects = () => {
   const navigate = useNavigate();
@@ -21,21 +23,15 @@ const Projects = () => {
   const [error, setError] = useState('');
 
   const { data: projects = [], isLoading, isFetching, refetch } = useQuery({
-    queryKey: ['projects'],
-    queryFn: async () => {
-      const res = await api.get('/projects');
-      return res.data;
-    },
+    queryKey: QUERY_KEYS.PROJECTS,
+    queryFn: getProjects,
   });
 
   const createMutation = useMutation({
-    mutationFn: async (data) => {
-      const res = await api.post('/projects', data);
-      return res.data;
-    },
+    mutationFn: createProject,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['projects'] });
-      queryClient.invalidateQueries({ queryKey: ['companyStats'] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.PROJECTS });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.COMPANY_STATS });
       setCreateOpen(false);
       setForm({ name: '', code: '', description: '', startDate: '', endDate: '' });
       setError('');
@@ -98,7 +94,7 @@ const Projects = () => {
             <Card
               key={project._id}
               className="hover:shadow-lg transition-all cursor-pointer group"
-              onClick={() => navigate(`/company/projects/${project._id}`)}
+              onClick={() => navigate(ROUTE_PATH_BUILDERS.companyProjectDetail(project._id))}
             >
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">

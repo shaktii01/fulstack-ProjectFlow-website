@@ -1,24 +1,23 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import api from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import ProjectMembersModal from '@/components/projects/ProjectMembersModal';
 import RefreshButton from '@/components/ui/refresh-button';
 import { FolderKanban, Users, Calendar, ArrowRight } from 'lucide-react';
+import { getProjects } from '@/services/projectService';
+import { QUERY_KEYS } from '@/constants/queryKeys';
+import { ROUTE_PATH_BUILDERS } from '@/routes/routePaths';
 
 const EmployeeProjects = () => {
   const navigate = useNavigate();
   const [membersProject, setMembersProject] = useState(null);
 
   const { data: projects = [], isLoading, isFetching, refetch } = useQuery({
-    queryKey: ['projects'],
-    queryFn: async () => {
-      const res = await api.get('/projects');
-      return res.data;
-    },
+    queryKey: QUERY_KEYS.PROJECTS,
+    queryFn: getProjects,
   });
 
   if (isLoading) {
@@ -55,7 +54,7 @@ const EmployeeProjects = () => {
             <Card
               key={project._id}
               className="hover:shadow-lg transition-all cursor-pointer group"
-              onClick={() => navigate(`/employee/projects/${project._id}`)}
+              onClick={() => navigate(ROUTE_PATH_BUILDERS.employeeProjectDetail(project._id))}
             >
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">

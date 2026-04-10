@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import api from '@/lib/api';
 import useAuthStore from '@/store/authStore';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,6 +13,11 @@ import EditProjectModal from '@/components/projects/EditProjectModal';
 import AddMemberModal from '@/components/projects/AddMemberModal';
 import KanbanBoard from '@/components/projects/KanbanBoard';
 import { ArrowLeft, Plus, Users, Calendar, Trash2 } from 'lucide-react';
+import { getCompanyEmployees } from '@/services/companyService';
+import { deleteProject, getProjectById } from '@/services/projectService';
+import { getTasks } from '@/services/taskService';
+import { QUERY_KEYS } from '@/constants/queryKeys';
+import { ROUTE_PATHS } from '@/routes/routePaths';
 
 const ProjectDetail = () => {
   const { id } = useParams();
@@ -33,11 +37,8 @@ const ProjectDetail = () => {
     isFetching: isProjectFetching,
     refetch: refetchProject,
   } = useQuery({
-    queryKey: ['project', id],
-    queryFn: async () => {
-      const res = await api.get(`/projects/${id}`);
-      return res.data;
-    },
+    queryKey: QUERY_KEYS.PROJECT_DETAIL(id),
+    queryFn: () => getProjectById(id),
   });
 
   const {
@@ -46,11 +47,8 @@ const ProjectDetail = () => {
     isFetching: isTasksFetching,
     refetch: refetchTasks,
   } = useQuery({
-    queryKey: ['tasks', id],
-    queryFn: async () => {
-      const res = await api.get(`/tasks?projectId=${id}`);
-      return res.data;
-    },
+    queryKey: QUERY_KEYS.PROJECT_TASKS(id),
+    queryFn: () => getTasks({ projectId: id }),
   });
 
   const {
@@ -58,22 +56,23 @@ const ProjectDetail = () => {
     isFetching: isEmployeesFetching,
     refetch: refetchEmployees,
   } = useQuery({
-    queryKey: ['companyEmployees'],
-    queryFn: async () => {
-      const res = await api.get('/company/employees');
-      return res.data;
-    },
+    queryKey: QUERY_KEYS.COMPANY_EMPLOYEES,
+    queryFn: getCompanyEmployees,
     enabled: isCompany,
   });
 
   const deleteProjectMutation = useMutation({
-    mutationFn: async () => {
-      const res = await api.delete(`/projects/${id}`);
-      return res.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['projects'] });
-      navigate(isCompany ? '/company/projects' : '/employee/projects');
+    mutationFn: () => deleteProject(id),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.PROJECTS }),
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.PROJECT_DETAIL(id) }),
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TASKS }),
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.PROJECT_TASKS(id) }),
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.MY_TASKS }),
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.COMPANY_STATS }),
+      ]);
+      navigate(isCompany ? ROUTE_PATHS.COMPANY_PROJECTS : ROUTE_PATHS.EMPLOYEE_PROJECTS);
     },
   });
 
@@ -105,7 +104,7 @@ const ProjectDetail = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-4">
-        <button onClick={() => navigate(isCompany ? '/company/projects' : '/employee/projects')} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors w-fit">
+        <button onClick={() => navigate(isCompany ? ROUTE_PATHS.COMPANY_PROJECTS : ROUTE_PATHS.EMPLOYEE_PROJECTS)} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors w-fit">
           <ArrowLeft className="h-4 w-4" /> Back to Projects
         </button>
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">

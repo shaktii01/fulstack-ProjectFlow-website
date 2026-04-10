@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import api from '@/lib/api';
 import { Dialog, DialogHeader, DialogTitle, DialogContent, DialogFooter, DialogClose } from '../ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { updateProject } from '@/services/projectService';
+import { QUERY_KEYS } from '@/constants/queryKeys';
 
 const EditProjectModal = ({ open, onClose, project }) => {
   const queryClient = useQueryClient();
@@ -24,12 +25,9 @@ const EditProjectModal = ({ open, onClose, project }) => {
   }, [project, open]);
 
   const updateProjectMutation = useMutation({
-    mutationFn: async (data) => {
-      const res = await api.put(`/projects/${project._id}`, data);
-      return res.data;
-    },
+    mutationFn: (data) => updateProject(project._id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['project', project._id] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.PROJECT_DETAIL(project._id) });
       onClose();
     },
     onError: (err) => setError(err.response?.data?.message || 'Failed to update project'),

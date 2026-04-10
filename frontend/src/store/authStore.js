@@ -1,37 +1,43 @@
 import { create } from 'zustand';
-import api from '@/lib/api';
+import {
+  getAuthSession,
+  login as loginRequest,
+  logout as logoutRequest,
+  registerCompany as registerCompanyRequest,
+  registerEmployee as registerEmployeeRequest,
+} from '@/services/authService';
 
-const useAuthStore = create((set, get) => ({
+const useAuthStore = create((set) => ({
   user: null,
   isAuthenticated: false,
   isLoading: true, // true initially to check user session on mount
 
   login: async (credentials) => {
-    const { data } = await api.post('/auth/login', credentials);
-    set({ user: data, isAuthenticated: true, isLoading: false });
-    return data;
+    const user = await loginRequest(credentials);
+    set({ user, isAuthenticated: true, isLoading: false });
+    return user;
   },
 
   registerCompany: async (info) => {
-    const { data } = await api.post('/auth/register/company', info);
-    set({ user: data, isAuthenticated: true, isLoading: false });
-    return data;
+    const user = await registerCompanyRequest(info);
+    set({ user, isAuthenticated: true, isLoading: false });
+    return user;
   },
 
   registerEmployee: async (info) => {
-    const { data } = await api.post('/auth/register/employee', info);
-    set({ user: data, isAuthenticated: true, isLoading: false });
-    return data;
+    const user = await registerEmployeeRequest(info);
+    set({ user, isAuthenticated: true, isLoading: false });
+    return user;
   },
 
   logout: async () => {
-    await api.post('/auth/logout');
+    await logoutRequest();
     set({ user: null, isAuthenticated: false });
   },
 
   checkAuth: async () => {
     try {
-      const { data } = await api.get('/auth/session');
+      const data = await getAuthSession();
       set({
         user: data.user,
         isAuthenticated: Boolean(data.user),

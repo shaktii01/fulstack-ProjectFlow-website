@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import api from '@/lib/api';
 import { Input } from '@/components/ui/input';
 import RefreshButton from '@/components/ui/refresh-button';
 import { Search } from 'lucide-react';
 import EmployeeTable from '@/components/employees/EmployeeTable';
 import EditEmployeeModal from '@/components/employees/EditEmployeeModal';
+import { getCompanyEmployees, removeCompanyEmployee } from '@/services/companyService';
+import { QUERY_KEYS } from '@/constants/queryKeys';
 
 const Employees = () => {
   const queryClient = useQueryClient();
@@ -18,21 +19,15 @@ const Employees = () => {
     isFetching,
     refetch,
   } = useQuery({
-    queryKey: ['companyEmployees'],
-    queryFn: async () => {
-      const res = await api.get('/company/employees');
-      return res.data;
-    },
+    queryKey: QUERY_KEYS.COMPANY_EMPLOYEES,
+    queryFn: getCompanyEmployees,
   });
 
   const removeMutation = useMutation({
-    mutationFn: async (id) => {
-      const res = await api.delete(`/company/employees/${id}`);
-      return res.data;
-    },
+    mutationFn: removeCompanyEmployee,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['companyEmployees'] });
-      queryClient.invalidateQueries({ queryKey: ['companyStats'] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.COMPANY_EMPLOYEES });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.COMPANY_STATS });
     },
   });
 

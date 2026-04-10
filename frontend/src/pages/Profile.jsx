@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import api from '@/lib/api';
 import useAuthStore from '@/store/authStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import RefreshButton from '@/components/ui/refresh-button';
 import { User, Mail, Phone, Shield, Save, Building2, MapPin, FileText } from 'lucide-react';
 import ImageUpload from '@/components/ui/ImageUpload';
+import { updateProfile as updateProfileRequest } from '@/services/profileService';
 
 const Profile = () => {
   const { user, checkAuth } = useAuthStore();
@@ -30,10 +30,7 @@ const Profile = () => {
     typeof user?.companyId === 'object' ? user?.companyId?.companyName : user?.companyName;
 
   const updateMutation = useMutation({
-    mutationFn: async (data) => {
-      const res = await api.put('/profile', data);
-      return res.data;
-    },
+    mutationFn: updateProfileRequest,
     onSuccess: () => {
       setMessage({ type: 'success', text: 'Settings saved successfully!' });
       setEditing(false);

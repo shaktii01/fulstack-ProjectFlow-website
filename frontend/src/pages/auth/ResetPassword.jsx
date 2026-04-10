@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
-import api from '@/lib/api';
+import { resetPassword as resetPasswordRequest } from '@/services/authService';
+import { ROUTE_PATHS } from '@/routes/routePaths';
 
 const resetPasswordSchema = z.object({
   password: z.string().min(6, { message: 'Password must be at least 6 characters' }),
@@ -32,10 +33,10 @@ const ResetPassword = () => {
     try {
       setLoading(true);
       setErrorMsg('');
-      await api.put(`/auth/reset-password/${token}`, { password: data.password });
+      await resetPasswordRequest(token, { password: data.password });
       setSuccess(true);
       setTimeout(() => {
-        navigate('/login');
+        navigate(ROUTE_PATHS.LOGIN);
       }, 3000);
     } catch (error) {
       setErrorMsg(error.response?.data?.message || 'Failed to reset password. The link might be invalid or expired.');
@@ -64,7 +65,7 @@ const ResetPassword = () => {
                   <p className="text-muted-foreground text-sm mt-2">
                     Redirecting you to login...
                   </p>
-                  <Button variant="outline" className="mt-4 w-full" onClick={() => navigate('/login')}>
+                  <Button variant="outline" className="mt-4 w-full" onClick={() => navigate(ROUTE_PATHS.LOGIN)}>
                     Go to Login
                   </Button>
                 </div>

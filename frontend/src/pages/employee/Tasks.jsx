@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import api from '@/lib/api';
 import useAuthStore from '@/store/authStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -8,6 +7,8 @@ import { Select } from '@/components/ui/select';
 import RefreshButton from '@/components/ui/refresh-button';
 import TaskDetailModal from '@/components/tasks/TaskDetailModal';
 import { ListTodo, Clock, User as UserIcon, Filter } from 'lucide-react';
+import { getTasks, updateTask } from '@/services/taskService';
+import { QUERY_KEYS } from '@/constants/queryKeys';
 
 const priorityColors = { low: 'info', medium: 'warning', high: 'destructive', urgent: 'destructive' };
 const statusColors = { todo: 'secondary', in_progress: 'warning', review: 'info', done: 'success' };
@@ -21,20 +22,14 @@ const EmployeeTasks = () => {
   const [filterPriority, setFilterPriority] = useState('all');
 
   const { data: tasks = [], isLoading, isFetching, refetch } = useQuery({
-    queryKey: ['myTasks'],
-    queryFn: async () => {
-      const res = await api.get('/tasks');
-      return res.data;
-    },
+    queryKey: QUERY_KEYS.MY_TASKS,
+    queryFn: () => getTasks(),
   });
 
   const updateStatusMutation = useMutation({
-    mutationFn: async ({ taskId, status }) => {
-      const res = await api.put(`/tasks/${taskId}`, { status });
-      return res.data;
-    },
+    mutationFn: ({ taskId, status }) => updateTask(taskId, { status }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['myTasks'] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.MY_TASKS });
     },
   });
 

@@ -10,13 +10,15 @@ const parseUrlList = (...values) =>
       .filter(Boolean)
   )];
 
-const getAllowedOrigins = () =>
-  parseUrlList(
-    process.env.FRONTEND_URL,
-    process.env.FRONTEND_URL_ALT,
-    process.env.FRONTEND_URLS,
-    ...DEV_FRONTEND_ORIGINS
-  );
+const getAllowedOrigins = () => {
+  const configuredOrigins = parseUrlList(process.env.FRONTEND_URL, process.env.FRONTEND_URLS);
+
+  if (configuredOrigins.length > 0) {
+    return configuredOrigins;
+  }
+
+  return process.env.NODE_ENV === 'production' ? [] : DEV_FRONTEND_ORIGINS;
+};
 
 const getPrimaryFrontendUrl = () =>
   getAllowedOrigins().find((origin) => !DEV_FRONTEND_ORIGINS.includes(origin)) ||
@@ -35,4 +37,16 @@ const getAuthCookieOptions = () => {
   };
 };
 
-export { getAllowedOrigins, getPrimaryFrontendUrl, getAuthCookieOptions };
+const getCsrfCookieOptions = () => {
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  return {
+    httpOnly: false,
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'lax',
+    path: '/',
+    maxAge: 12 * 60 * 60 * 1000, // 12 hours
+  };
+};
+
+export { getAllowedOrigins, getPrimaryFrontendUrl, getAuthCookieOptions, getCsrfCookieOptions };

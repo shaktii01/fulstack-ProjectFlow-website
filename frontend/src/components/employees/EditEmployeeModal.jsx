@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import api from '@/lib/api';
 import { Dialog, DialogHeader, DialogTitle, DialogContent, DialogFooter, DialogClose } from '../ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { updateCompanyEmployee } from '@/services/companyService';
+import { QUERY_KEYS } from '@/constants/queryKeys';
 
 const EditEmployeeModal = ({ open, onClose, employee }) => {
   const queryClient = useQueryClient();
@@ -21,12 +22,9 @@ const EditEmployeeModal = ({ open, onClose, employee }) => {
   }, [employee, open]);
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }) => {
-      const res = await api.put(`/company/employees/${id}`, data);
-      return res.data;
-    },
+    mutationFn: ({ id, data }) => updateCompanyEmployee(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['companyEmployees'] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.COMPANY_EMPLOYEES });
       onClose();
     },
   });

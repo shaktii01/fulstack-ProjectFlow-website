@@ -6,17 +6,13 @@ import cookieParser from 'cookie-parser';
 
 import { notFound, errorHandler } from './middlewares/errorMiddleware.js';
 import { getAllowedOrigins } from './utils/clientConfig.js';
-
-// Route imports
-import authRoutes from './routes/authRoutes.js';
-import companyRoutes from './routes/companyRoutes.js';
-import projectRoutes from './routes/projectRoutes.js';
-import taskRoutes from './routes/taskRoutes.js';
-import commentRoutes from './routes/commentRoutes.js';
-import profileRoutes from './routes/profileRoutes.js';
-import uploadRoutes from './routes/uploadRoutes.js';
+import registerRoutes from './routes/index.js';
+import { csrfProtection } from './middlewares/csrfMiddleware.js';
+import { sanitizeRequest } from './middlewares/sanitizeMiddleware.js';
 
 const app = express();
+app.disable('x-powered-by');
+app.set('trust proxy', process.env.NODE_ENV === 'production' ? 1 : false);
 
 // Middlewares
 const allowedOrigins = getAllowedOrigins();
@@ -27,6 +23,8 @@ app.use(cors({
     if (allowedOrigins.includes(origin)) return callback(null, true);
     return callback(new Error(`CORS policy does not allow access from origin ${origin}`));
   },
+  methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'X-CSRF-Token'],
   credentials: true,
 }));
 
@@ -34,23 +32,18 @@ app.use(cors({
 
 app.use(helmet());
 app.use(morgan('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '100kb' }));
+app.use(express.urlencoded({ extended: true, limit: '100kb' }));
 app.use(cookieParser());
+app.use(sanitizeRequest);
+app.use(csrfProtection);
 
 // Base Route
 app.get('/', (req, res) => {
   res.send('ProjectFlow API is running...');
 });
 
-// Import Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/company', companyRoutes);
-app.use('/api/projects', projectRoutes);
-app.use('/api/tasks', taskRoutes);
-app.use('/api/comments', commentRoutes);
-app.use('/api/profile', profileRoutes);
-app.use('/api/upload', uploadRoutes);
+registerRoutes(app);
 
 // Error Handling Middlewares
 app.use(notFound);

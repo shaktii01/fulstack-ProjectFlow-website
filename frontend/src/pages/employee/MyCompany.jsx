@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import api from '@/lib/api';
 import useAuthStore from '@/store/authStore';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -21,6 +20,8 @@ import {
   BriefcaseBusiness,
   FileText,
 } from 'lucide-react';
+import { getMyCompanyProfile, requestToJoinCompany } from '@/services/profileService';
+import { QUERY_KEYS } from '@/constants/queryKeys';
 
 const messageStyles = {
   success: 'border-emerald-500/20 bg-emerald-500/10 text-emerald-400',
@@ -89,11 +90,8 @@ const MyCompany = () => {
     isFetching,
     refetch,
   } = useQuery({
-    queryKey: ['myCompany'],
-    queryFn: async () => {
-      const res = await api.get('/profile/my-company');
-      return res.data;
-    },
+    queryKey: QUERY_KEYS.MY_COMPANY,
+    queryFn: getMyCompanyProfile,
     refetchInterval: (query) => (query.state.data?.status === 'pending' ? 10000 : false),
   });
 
@@ -111,14 +109,11 @@ const MyCompany = () => {
   }, [data?.status]);
 
   const requestMutation = useMutation({
-    mutationFn: async (code) => {
-      const res = await api.post('/profile/my-company/request', { invitationCode: code });
-      return res.data;
-    },
+    mutationFn: requestToJoinCompany,
     onSuccess: async (response) => {
       setMessage({ type: 'success', text: response.message || 'Join request sent successfully.' });
       setInvitationCode('');
-      await queryClient.invalidateQueries({ queryKey: ['myCompany'] });
+      await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.MY_COMPANY });
     },
     onError: (error) => {
       setMessage({

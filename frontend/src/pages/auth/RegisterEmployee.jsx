@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import AuthLayout from '@/components/auth/AuthLayout';
 import useAuthStore from '@/store/authStore';
+import { ROUTE_PATHS } from '@/routes/routePaths';
 
 const registerSchema = z.object({
   fullName: z.string().min(2, { message: 'Full name must be at least 2 characters' }),
@@ -31,7 +32,7 @@ const RegisterEmployee = () => {
       setErrorMsg('');
       await registerEmployee(data);
       // Wait for company approval, so dashboard might be empty, but they're logged in
-      navigate('/employee/dashboard');
+      navigate(ROUTE_PATHS.EMPLOYEE_DASHBOARD);
     } catch (error) {
       setErrorMsg(error.response?.data?.message || 'Registration failed');
     } finally {
@@ -112,13 +113,13 @@ const RegisterEmployee = () => {
       <div className="mt-6 flex flex-col space-y-2 text-center text-sm text-muted-foreground">
         <div>
           Already have an account?{' '}
-          <Link to="/login" className="text-primary hover:underline font-medium">
+          <Link to={ROUTE_PATHS.LOGIN} className="text-primary hover:underline font-medium">
             Log in
           </Link>
         </div>
         <div>
           Want to create a workspace?{' '}
-          <Link to="/register/company" className="text-primary hover:underline font-medium">
+          <Link to={ROUTE_PATHS.REGISTER_COMPANY} className="text-primary hover:underline font-medium">
             Register Company
           </Link>
         </div>

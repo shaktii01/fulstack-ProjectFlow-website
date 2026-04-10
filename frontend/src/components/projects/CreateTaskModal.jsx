@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import api from '@/lib/api';
 import { Dialog, DialogHeader, DialogTitle, DialogContent, DialogFooter, DialogClose } from '../ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select } from '@/components/ui/select';
+import { createTask } from '@/services/taskService';
+import { QUERY_KEYS } from '@/constants/queryKeys';
 
 const CreateTaskModal = ({ open, onClose, projectId, members }) => {
   const queryClient = useQueryClient();
@@ -13,12 +14,9 @@ const CreateTaskModal = ({ open, onClose, projectId, members }) => {
   const [error, setError] = useState('');
 
   const createTaskMutation = useMutation({
-    mutationFn: async (data) => {
-      const res = await api.post('/tasks', { ...data, project: projectId });
-      return res.data;
-    },
+    mutationFn: (data) => createTask({ ...data, project: projectId }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks', projectId] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.PROJECT_TASKS(projectId) });
       resetAndClose();
     },
     onError: (err) => setError(err.response?.data?.message || 'Failed to create task'),
@@ -62,7 +60,7 @@ const CreateTaskModal = ({ open, onClose, projectId, members }) => {
                 <option value="task">Task</option>
                 <option value="bug">Bug</option>
                 <option value="feature">Feature</option>
-                <option value="improvement">Improvement</option>
+                <option value="enhancement">Improvement</option>
               </Select>
             </div>
             <div className="space-y-2">

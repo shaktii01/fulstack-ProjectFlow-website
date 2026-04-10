@@ -17,6 +17,7 @@ import {
 import { cn } from '@/lib/utils';
 import ThemeToggle from '@/components/theme/ThemeToggle';
 import UserAvatar from '@/components/ui/user-avatar';
+import { ROUTE_PATHS } from '@/routes/routePaths';
 
 const AppLayout = () => {
   const { user, logout, isLoading } = useAuthStore();
@@ -58,26 +59,26 @@ const AppLayout = () => {
   }
 
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to={ROUTE_PATHS.LOGIN} replace />;
   }
 
   const handleLogout = async () => {
     await logout();
-    navigate('/login');
+    navigate(ROUTE_PATHS.LOGIN);
   };
 
   const navItems = user.role === 'company' ? [
-    { name: 'Dashboard', path: '/company/dashboard', icon: LayoutDashboard },
-    { name: 'Projects', path: '/company/projects', icon: FolderKanban },
-    { name: 'Employees', path: '/company/employees', icon: Users },
-    { name: 'Requests', path: '/company/requests', icon: Inbox },
-    { name: 'Settings', path: '/profile', icon: Settings },
+    { name: 'Dashboard', path: ROUTE_PATHS.COMPANY_DASHBOARD, icon: LayoutDashboard },
+    { name: 'Projects', path: ROUTE_PATHS.COMPANY_PROJECTS, icon: FolderKanban },
+    { name: 'Employees', path: ROUTE_PATHS.COMPANY_EMPLOYEES, icon: Users },
+    { name: 'Requests', path: ROUTE_PATHS.COMPANY_REQUESTS, icon: Inbox },
+    { name: 'Settings', path: ROUTE_PATHS.PROFILE, icon: Settings },
   ] : [
-    { name: 'Dashboard', path: '/employee/dashboard', icon: LayoutDashboard },
-    { name: 'My Projects', path: '/employee/projects', icon: FolderKanban },
-    { name: 'My Tasks', path: '/employee/tasks', icon: ListTodo },
-    { name: 'My Company', path: '/employee/company', icon: Building2 },
-    { name: 'Settings', path: '/profile', icon: Settings },
+    { name: 'Dashboard', path: ROUTE_PATHS.EMPLOYEE_DASHBOARD, icon: LayoutDashboard },
+    { name: 'My Projects', path: ROUTE_PATHS.EMPLOYEE_PROJECTS, icon: FolderKanban },
+    { name: 'My Tasks', path: ROUTE_PATHS.EMPLOYEE_TASKS, icon: ListTodo },
+    { name: 'My Company', path: ROUTE_PATHS.EMPLOYEE_COMPANY, icon: Building2 },
+    { name: 'Settings', path: ROUTE_PATHS.PROFILE, icon: Settings },
   ];
 
   const isActive = (path) => {
@@ -127,7 +128,7 @@ const AppLayout = () => {
           <div className="flex h-16 items-center justify-between border-b px-4 sm:px-6">
             <button
               type="button"
-              onClick={() => navigate(user.role === 'company' ? '/company/dashboard' : '/employee/dashboard')}
+              onClick={() => navigate(user.role === 'company' ? ROUTE_PATHS.COMPANY_DASHBOARD : ROUTE_PATHS.EMPLOYEE_DASHBOARD)}
               className="font-bold text-xl text-primary tracking-tight"
             >
               ProjectFlow
@@ -172,10 +173,10 @@ const AppLayout = () => {
           <div className="space-y-2 border-t border-border p-4">
             <button
               type="button"
-              onClick={() => navigate('/profile')}
+              onClick={() => navigate(ROUTE_PATHS.PROFILE)}
               className={cn(
                 'w-full flex items-center gap-3 rounded-lg p-2 text-left transition-colors',
-                location.pathname === '/profile'
+                location.pathname === ROUTE_PATHS.PROFILE
                   ? 'bg-primary/10'
                   : 'hover:bg-accent'
               )}
@@ -236,7 +237,7 @@ const AppLayout = () => {
               </div>
               <button
                 type="button"
-                onClick={() => navigate('/profile')}
+                onClick={() => navigate(ROUTE_PATHS.PROFILE)}
                 className="flex h-9 w-9 items-center justify-center"
                 aria-label="Open profile"
               >

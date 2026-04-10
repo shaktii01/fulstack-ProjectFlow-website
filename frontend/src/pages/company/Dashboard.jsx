@@ -1,181 +1,303 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import api from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Users, FolderKanban, CheckCircle, AlertCircle, ListTodo, Clock, TrendingUp, ArrowRight } from 'lucide-react';
+import { Users, FolderKanban, CheckCircle, AlertCircle, TrendingUp, ArrowRight, BriefcaseBusiness } from 'lucide-react';
 import useAuthStore from '@/store/authStore';
 import StatCard from '@/components/dashboard/StatCard';
 import RefreshButton from '@/components/ui/refresh-button';
 import UserAvatar from '@/components/ui/user-avatar';
+import { getCompanyDashboardStats } from '@/services/companyService';
+import { QUERY_KEYS } from '@/constants/queryKeys';
+import { ROUTE_PATHS } from '@/routes/routePaths';
 
 const CompanyDashboard = () => {
-  const user = useAuthStore(state => state.user);
+  const user = useAuthStore((state) => state.user);
   const navigate = useNavigate();
+  const [mobileActivityTab, setMobileActivityTab] = useState('tasks');
 
   const { data: stats, isLoading, error, refetch, isFetching } = useQuery({
-    queryKey: ['companyStats'],
-    queryFn: async () => {
-      const response = await api.get('/company/dashboard');
-      return response.data;
-    }
+    queryKey: QUERY_KEYS.COMPANY_STATS,
+    queryFn: getCompanyDashboardStats,
   });
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
       </div>
     );
   }
-  if (error) return <div className="text-destructive text-center py-20">Failed to load dashboard.</div>;
+  if (error) return <div className="py-20 text-center text-destructive">Failed to load dashboard.</div>;
 
-  const completionRate = stats.totalTasks > 0 
-    ? Math.round((stats.completedTasks / stats.totalTasks) * 100) 
+  const completionRate = stats.totalTasks > 0
+    ? Math.round((stats.completedTasks / stats.totalTasks) * 100)
     : 0;
+  const remainingTasks = Math.max(stats.totalTasks - stats.completedTasks, 0);
+  const recentTasks = stats.recentTasks || [];
+  const recentEmployees = stats.recentEmployees || [];
+  const mobileRecentTasks = recentTasks.slice(0, 4);
+  const mobileRecentEmployees = recentEmployees.slice(0, 4);
+
+  const statCards = [
+    {
+      title: 'Projects',
+      value: stats.projectCount,
+      icon: FolderKanban,
+      description: 'Active projects',
+      variant: 'blue',
+      onClick: () => navigate(ROUTE_PATHS.COMPANY_PROJECTS),
+    },
+    {
+      title: 'Employees',
+      value: stats.employeeCount,
+      icon: Users,
+      description: 'Team members',
+      variant: 'green',
+      onClick: () => navigate(ROUTE_PATHS.COMPANY_EMPLOYEES),
+    },
+    {
+      title: 'Pending',
+      value: stats.pendingRequests,
+      icon: AlertCircle,
+      description: 'Join requests',
+      variant: 'amber',
+      onClick: () => navigate(ROUTE_PATHS.COMPANY_REQUESTS),
+    },
+    {
+      title: 'Completed',
+      value: `${stats.completedTasks}/${stats.totalTasks}`,
+      icon: CheckCircle,
+      description: `${completionRate}% done`,
+      variant: 'green',
+    },
+  ];
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Dashboard</h2>
-          <p className="text-muted-foreground mt-1">Welcome back, {user?.fullName}. Here's your company overview.</p>
-        </div>
-        <div className="flex w-full flex-col gap-3 md:w-auto md:items-end">
-          <RefreshButton
-            onRefresh={refetch}
-            isRefreshing={isFetching}
-            className="w-full md:w-auto"
-          />
-          <div className="flex flex-col items-start gap-1 md:items-end">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Invitation Code</p>
-            <div className="inline-flex max-w-full items-center overflow-x-auto rounded-lg border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-mono font-bold text-primary tracking-[0.2em] sm:text-lg sm:tracking-[0.25em]">
-              {user?.invitationCode}
+    <div className="space-y-6">
+      <div className="rounded-2xl border bg-card p-4 sm:p-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Dashboard</h2>
+            <p className="mt-1 text-sm text-muted-foreground sm:text-base">
+              Welcome back, {user?.fullName}. Here is your live team snapshot.
+            </p>
+          </div>
+
+          <div className="flex w-full flex-col gap-3 md:w-auto md:items-end">
+            <RefreshButton
+              onRefresh={refetch}
+              isRefreshing={isFetching}
+              className="w-full md:w-auto"
+            />
+            <div className="rounded-lg border border-primary/20 bg-primary/5 px-3 py-2">
+              <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Invitation Code</p>
+              <p className="font-mono text-sm font-bold tracking-[0.18em] text-primary sm:text-base">{user?.invitationCode}</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard 
-          title="Total Projects" value={stats.projectCount} icon={FolderKanban}
-          description="Active company projects" variant="purple"
-          onClick={() => navigate('/company/projects')}
-        />
-        <StatCard 
-          title="Active Employees" value={stats.employeeCount} icon={Users}
-          description="In your organization" variant="green"
-          onClick={() => navigate('/company/employees')}
-        />
-        <StatCard 
-          title="Pending Requests" value={stats.pendingRequests} icon={AlertCircle}
-          description="Awaiting your approval" variant="amber"
-          onClick={() => navigate('/company/requests')}
-        />
-        <StatCard 
-          title="Tasks Completed" value={`${stats.completedTasks}/${stats.totalTasks}`} icon={CheckCircle}
-          description={`${completionRate}% completion rate`} variant="green"
-        />
+      <div className="md:hidden">
+        <div className="-mx-1 overflow-x-auto pb-1">
+          <div className="flex snap-x gap-3 px-1">
+            {statCards.map((card) => (
+              <StatCard
+                key={card.title}
+                title={card.title}
+                value={card.value}
+                icon={card.icon}
+                description={card.description}
+                variant={card.variant}
+                onClick={card.onClick}
+                compact
+                className="snap-start"
+              />
+            ))}
+          </div>
+        </div>
       </div>
 
-      {/* Progress + Task Stats */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <TrendingUp className="h-4 w-4" /> Completion Rate
+      <div className="hidden gap-4 md:grid md:grid-cols-2 xl:grid-cols-4">
+        {statCards.map((card) => (
+          <StatCard
+            key={card.title}
+            title={card.title}
+            value={card.value}
+            icon={card.icon}
+            description={card.description}
+            variant={card.variant}
+            onClick={card.onClick}
+          />
+        ))}
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-3">
+        <Card className="lg:col-span-2">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <TrendingUp className="h-4 w-4" /> Delivery Snapshot
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
             <div className="text-4xl font-bold">{completionRate}%</div>
-            <div className="w-full bg-muted rounded-full h-2.5 mt-3">
-              <div 
-                className="bg-primary h-2.5 rounded-full transition-all duration-500"
+            <div className="mt-3 h-2.5 w-full rounded-full bg-muted">
+              <div
+                className="h-2.5 rounded-full bg-primary transition-all duration-500"
                 style={{ width: `${completionRate}%` }}
               />
             </div>
-            <div className="flex justify-between text-xs text-muted-foreground mt-2">
+            <div className="mt-2 flex justify-between text-xs text-muted-foreground">
               <span>{stats.completedTasks} done</span>
-              <span>{stats.totalTasks - stats.completedTasks} remaining</span>
+              <span>{remainingTasks} remaining</span>
             </div>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <ListTodo className="h-4 w-4" /> Task Breakdown
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-sm">In Progress</span>
-                <Badge variant="warning">{stats.inProgressTasks}</Badge>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="rounded-lg border bg-muted/30 p-3">
+                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">In Progress</p>
+                <p className="mt-1 text-xl font-semibold">{stats.inProgressTasks}</p>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm">Completed</span>
-                <Badge variant="success">{stats.completedTasks}</Badge>
+              <div className="rounded-lg border bg-muted/30 p-3">
+                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Completed</p>
+                <p className="mt-1 text-xl font-semibold">{stats.completedTasks}</p>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm">Overdue</span>
-                <Badge variant="destructive">{stats.overdueTasks}</Badge>
+              <div className="rounded-lg border bg-muted/30 p-3">
+                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Overdue</p>
+                <p className="mt-1 text-xl font-semibold text-destructive">{stats.overdueTasks}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Clock className="h-4 w-4" /> Quick Stats
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <BriefcaseBusiness className="h-4 w-4" /> Team Pulse
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-sm">Total Tasks</span>
-                <span className="font-bold">{stats.totalTasks}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm">Total Projects</span>
-                <span className="font-bold">{stats.projectCount}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm">Team Size</span>
-                <span className="font-bold">{stats.employeeCount}</span>
-              </div>
+          <CardContent className="space-y-3">
+            <div className="flex items-center justify-between rounded-md border bg-muted/30 px-3 py-2">
+              <span className="text-sm text-muted-foreground">Projects</span>
+              <span className="font-semibold">{stats.projectCount}</span>
+            </div>
+            <div className="flex items-center justify-between rounded-md border bg-muted/30 px-3 py-2">
+              <span className="text-sm text-muted-foreground">Employees</span>
+              <span className="font-semibold">{stats.employeeCount}</span>
+            </div>
+            <div className="flex items-center justify-between rounded-md border bg-muted/30 px-3 py-2">
+              <span className="text-sm text-muted-foreground">Pending approvals</span>
+              <span className="font-semibold">{stats.pendingRequests}</span>
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground">Total tasks in active projects</p>
+              <p className="text-2xl font-bold">{stats.totalTasks}</p>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Recent Activity */}
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="space-y-3 md:hidden">
+        <div className="inline-flex w-full rounded-lg border bg-muted/30 p-1">
+          <button
+            type="button"
+            onClick={() => setMobileActivityTab('tasks')}
+            className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${mobileActivityTab === 'tasks' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'}`}
+          >
+            Recent Tasks
+          </button>
+          <button
+            type="button"
+            onClick={() => setMobileActivityTab('employees')}
+            className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${mobileActivityTab === 'employees' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'}`}
+          >
+            Team Activity
+          </button>
+        </div>
+
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-base">Recent Tasks</CardTitle>
-              <button onClick={() => navigate('/company/projects')} className="text-xs text-primary hover:underline flex items-center gap-1">
+              <CardTitle className="text-base">
+                {mobileActivityTab === 'tasks' ? 'Recent Tasks' : 'Recent Employees'}
+              </CardTitle>
+              <button
+                onClick={() => navigate(mobileActivityTab === 'tasks' ? ROUTE_PATHS.COMPANY_PROJECTS : ROUTE_PATHS.COMPANY_EMPLOYEES)}
+                className="flex items-center gap-1 text-xs text-primary hover:underline"
+              >
                 View all <ArrowRight className="h-3 w-3" />
               </button>
             </div>
           </CardHeader>
           <CardContent>
-            {stats.recentTasks?.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-6">No tasks created yet.</p>
+            {mobileActivityTab === 'tasks' ? (
+              mobileRecentTasks.length === 0 ? (
+                <p className="py-6 text-center text-sm text-muted-foreground">No tasks created yet.</p>
+              ) : (
+                <div className="space-y-2.5">
+                  {mobileRecentTasks.map((task) => (
+                    <div key={task._id} className="flex items-center justify-between rounded-lg bg-muted/30 p-2.5">
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium">{task.title}</p>
+                        <p className="truncate text-xs text-muted-foreground">
+                          {task.project?.name} | {task.assignedTo?.fullName || 'Unassigned'}
+                        </p>
+                      </div>
+                      <Badge variant={task.status === 'done' ? 'success' : task.status === 'in_progress' ? 'warning' : 'secondary'} className="ml-2 text-[10px] capitalize">
+                        {task.status?.replace('_', ' ')}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              )
+            ) : (
+              mobileRecentEmployees.length === 0 ? (
+                <p className="py-6 text-center text-sm text-muted-foreground">No employees have joined yet.</p>
+              ) : (
+                <div className="space-y-2.5">
+                  {mobileRecentEmployees.map((emp) => (
+                    <div key={emp._id} className="flex items-center gap-3 rounded-lg bg-muted/30 p-2.5">
+                      <UserAvatar
+                        src={emp.profileImage}
+                        name={emp.fullName}
+                        alt={emp.fullName}
+                        className="h-8 w-8 bg-primary/15 text-xs"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium">{emp.fullName}</p>
+                        <p className="truncate text-xs text-muted-foreground">{emp.department || emp.email}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="hidden gap-4 md:grid md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base">Recent Tasks</CardTitle>
+              <button onClick={() => navigate(ROUTE_PATHS.COMPANY_PROJECTS)} className="flex items-center gap-1 text-xs text-primary hover:underline">
+                View all <ArrowRight className="h-3 w-3" />
+              </button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {recentTasks.length === 0 ? (
+              <p className="py-6 text-center text-sm text-muted-foreground">No tasks created yet.</p>
             ) : (
               <div className="space-y-3">
-                {stats.recentTasks?.map((task) => (
-                  <div key={task._id} className="flex items-center justify-between p-2.5 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                {recentTasks.map((task) => (
+                  <div key={task._id} className="flex items-center justify-between rounded-lg bg-muted/30 p-2.5 transition-colors hover:bg-muted/50">
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium truncate">{task.title}</p>
-                      <p className="text-xs text-muted-foreground">{task.project?.name} · {task.assignedTo?.fullName || 'Unassigned'}</p>
+                      <p className="truncate text-sm font-medium">{task.title}</p>
+                      <p className="text-xs text-muted-foreground">{task.project?.name} | {task.assignedTo?.fullName || 'Unassigned'}</p>
                     </div>
-                    <Badge variant={task.status === 'done' ? 'success' : task.status === 'in_progress' ? 'warning' : 'secondary'} className="text-[10px] ml-2 shrink-0">
+                    <Badge variant={task.status === 'done' ? 'success' : task.status === 'in_progress' ? 'warning' : 'secondary'} className="ml-2 shrink-0 text-[10px] capitalize">
                       {task.status?.replace('_', ' ')}
                     </Badge>
                   </div>
@@ -184,23 +306,23 @@ const CompanyDashboard = () => {
             )}
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-base">Recent Employees</CardTitle>
-              <button onClick={() => navigate('/company/employees')} className="text-xs text-primary hover:underline flex items-center gap-1">
+              <button onClick={() => navigate(ROUTE_PATHS.COMPANY_EMPLOYEES)} className="flex items-center gap-1 text-xs text-primary hover:underline">
                 View all <ArrowRight className="h-3 w-3" />
               </button>
             </div>
           </CardHeader>
           <CardContent>
-            {stats.recentEmployees?.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-6">No employees have joined yet.</p>
+            {recentEmployees.length === 0 ? (
+              <p className="py-6 text-center text-sm text-muted-foreground">No employees have joined yet.</p>
             ) : (
               <div className="space-y-3">
-                {stats.recentEmployees?.map((emp) => (
-                  <div key={emp._id} className="flex items-center gap-3 p-2.5 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                {recentEmployees.map((emp) => (
+                  <div key={emp._id} className="flex items-center gap-3 rounded-lg bg-muted/30 p-2.5 transition-colors hover:bg-muted/50">
                     <UserAvatar
                       src={emp.profileImage}
                       name={emp.fullName}
@@ -208,8 +330,8 @@ const CompanyDashboard = () => {
                       className="h-8 w-8 bg-primary/15 text-xs"
                     />
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium truncate">{emp.fullName}</p>
-                      <p className="text-xs text-muted-foreground truncate">{emp.department || emp.email}</p>
+                      <p className="truncate text-sm font-medium">{emp.fullName}</p>
+                      <p className="truncate text-xs text-muted-foreground">{emp.department || emp.email}</p>
                     </div>
                   </div>
                 ))}

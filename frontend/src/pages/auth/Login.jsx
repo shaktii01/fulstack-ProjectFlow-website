@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import AuthLayout from '@/components/auth/AuthLayout';
 import useAuthStore from '@/store/authStore';
+import { ROUTE_PATHS } from '@/routes/routePaths';
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Invalid email address' }),
@@ -27,8 +28,8 @@ const Login = () => {
       setLoading(true);
       setErrorMsg('');
       const user = await login(data);
-      if (user.role === 'company') navigate('/company/dashboard');
-      else navigate('/employee/dashboard');
+      if (user.role === 'company') navigate(ROUTE_PATHS.COMPANY_DASHBOARD);
+      else navigate(ROUTE_PATHS.EMPLOYEE_DASHBOARD);
     } catch (error) {
       setErrorMsg(error.response?.data?.message || 'Login failed, check your credentials');
     } finally {
@@ -61,7 +62,7 @@ const Login = () => {
             <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
               Password
             </label>
-            <Link to="/forgot-password" className="text-sm text-primary hover:underline font-medium">
+            <Link to={ROUTE_PATHS.FORGOT_PASSWORD} className="text-sm text-primary hover:underline font-medium">
               Forgot password?
             </Link>
           </div>
@@ -80,7 +81,7 @@ const Login = () => {
 
       <div className="mt-6 text-center text-sm text-muted-foreground">
         Don't have an account?{' '}
-        <Link to="/register/company" className="text-primary hover:underline font-medium">
+        <Link to={ROUTE_PATHS.REGISTER_COMPANY} className="text-primary hover:underline font-medium">
           Register company
         </Link>
       </div>

@@ -1,16 +1,16 @@
 import React, { useRef, useState } from 'react';
 import { Camera, Loader2, AlertCircle } from 'lucide-react';
-import api from '@/lib/api';
+import { uploadImage as uploadImageRequest } from '@/services/uploadService';
 
 /**
- * ImageUpload — reusable avatar/logo uploader via ImageKit.
+ * ImageUpload - reusable avatar/logo uploader via ImageKit.
  *
  * Props:
- *   currentImage  {string}   — existing image URL to display
- *   onUpload      {function} — called with the new CDN URL when upload succeeds
- *   shape         {string}   — 'circle' | 'square' (default: 'square')
- *   size          {number}   — pixel dimension of the preview box (default: 80)
- *   label         {string}   — accessible aria-label
+ *   currentImage  {string}   - existing image URL to display
+ *   onUpload      {function} - called with the new CDN URL when upload succeeds
+ *   shape         {string}   - 'circle' | 'square' (default: 'square')
+ *   size          {number}   - pixel dimension of the preview box (default: 80)
+ *   label         {string}   - accessible aria-label
  */
 const ImageUpload = ({
   currentImage,
@@ -42,19 +42,11 @@ const ImageUpload = ({
     setError('');
     setUploading(true);
 
-    // Optimistic local preview
     const localUrl = URL.createObjectURL(file);
     setPreview(localUrl);
 
     try {
-      // POST file to our backend → backend uploads to ImageKit server-side (no CORS)
-      const formData = new FormData();
-      formData.append('image', file);
-
-      const { data } = await api.post('/upload/image', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-
+      const data = await uploadImageRequest(file);
       setPreview(data.url);
       onUpload(data.url);
     } catch (err) {
@@ -70,7 +62,6 @@ const ImageUpload = ({
 
   return (
     <div className="flex flex-col items-center gap-2">
-      {/* Clickable avatar preview */}
       <div
         role="button"
         aria-label={label}
@@ -103,7 +94,6 @@ const ImageUpload = ({
           <Camera className="h-7 w-7 text-muted-foreground/50" />
         )}
 
-        {/* Hover / uploading overlay */}
         <div
           style={{
             position: 'absolute',
@@ -120,21 +110,19 @@ const ImageUpload = ({
           className="group-hover:!opacity-100"
         >
           {uploading ? (
-            <Loader2 className="h-6 w-6 text-primary animate-spin" />
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
           ) : (
             <Camera className="h-5 w-5 text-primary" />
           )}
         </div>
       </div>
 
-      {/* Helper text */}
-      <p className="text-[10px] text-muted-foreground text-center">
-        {uploading ? 'Uploading…' : 'Click to upload'}
+      <p className="text-center text-[10px] text-muted-foreground">
+        {uploading ? 'Uploading...' : 'Click to upload'}
         <br />
-        <span className="opacity-70">PNG, JPG, WEBP · max 5 MB</span>
+        <span className="opacity-70">PNG, JPG, WEBP | max 5 MB</span>
       </p>
 
-      {/* Error */}
       {error && (
         <div className="flex items-center gap-1.5 text-[11px] text-destructive">
           <AlertCircle className="h-3.5 w-3.5 shrink-0" />
@@ -142,7 +130,6 @@ const ImageUpload = ({
         </div>
       )}
 
-      {/* Hidden file input */}
       <input
         ref={inputRef}
         type="file"

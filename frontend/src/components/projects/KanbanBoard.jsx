@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import api from '@/lib/api';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Clock, User as UserIcon, GripVertical } from 'lucide-react';
 import useAuthStore from './../../store/authStore';
+import { updateTask } from '@/services/taskService';
+import { QUERY_KEYS } from '@/constants/queryKeys';
 
 const priorityColors = { low: 'info', medium: 'warning', high: 'destructive', urgent: 'destructive' };
 const statusColors = { todo: 'secondary', in_progress: 'warning', review: 'info', done: 'success' };
@@ -19,23 +20,20 @@ const KanbanBoard = ({ tasks, projectId, onTaskSelect }) => {
   const [dragOverColumn, setDragOverColumn] = useState(null);
 
   const dragStatusMutation = useMutation({
-    mutationFn: async ({ taskId, status }) => {
-      const res = await api.put(`/tasks/${taskId}`, { status });
-      return res.data;
-    },
+    mutationFn: ({ taskId, status }) => updateTask(taskId, { status }),
     onMutate: async ({ taskId, status }) => {
-      await queryClient.cancelQueries({ queryKey: ['tasks', projectId] });
-      const previousTasks = queryClient.getQueryData(['tasks', projectId]);
-      queryClient.setQueryData(['tasks', projectId], (old) =>
+      await queryClient.cancelQueries({ queryKey: QUERY_KEYS.PROJECT_TASKS(projectId) });
+      const previousTasks = queryClient.getQueryData(QUERY_KEYS.PROJECT_TASKS(projectId));
+      queryClient.setQueryData(QUERY_KEYS.PROJECT_TASKS(projectId), (old) =>
         old?.map((t) => t._id === taskId ? { ...t, status } : t)
       );
       return { previousTasks };
     },
     onError: (err, variables, context) => {
-      queryClient.setQueryData(['tasks', projectId], context.previousTasks);
+      queryClient.setQueryData(QUERY_KEYS.PROJECT_TASKS(projectId), context.previousTasks);
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks', projectId] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.PROJECT_TASKS(projectId) });
     },
   });
 

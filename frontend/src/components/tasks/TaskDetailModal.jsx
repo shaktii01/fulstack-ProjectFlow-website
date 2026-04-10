@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import api from '@/lib/api';
 import useAuthStore from '@/store/authStore';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,6 +10,9 @@ import { Badge } from '@/components/ui/badge';
 import UserAvatar from '@/components/ui/user-avatar';
 import { Dialog, DialogHeader, DialogTitle, DialogContent, DialogFooter, DialogClose } from '../../components/ui/dialog';
 import { Clock, User as UserIcon, MessageSquare, Send, Trash2 } from 'lucide-react';
+import { getTaskComments, addTaskComment } from '@/services/commentService';
+import { getTaskById, updateTask, deleteTask } from '@/services/taskService';
+import { QUERY_KEYS } from '@/constants/queryKeys';
 
 const priorityColors = { low: 'info', medium: 'warning', high: 'destructive', urgent: 'destructive' };
 const statusLabels = { todo: 'To Do', in_progress: 'In Progress', review: 'In Review', done: 'Done' };
@@ -24,12 +26,24 @@ const TaskDetail = ({ taskId, projectId, onClose }) => {
   const [editForm, setEditForm] = useState({});
   const [commentText, setCommentText] = useState('');
 
+  const invalidateTaskQueries = async () => {
+    const invalidations = [
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TASK_DETAIL(taskId) }),
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TASKS }),
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.MY_TASKS }),
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.COMPANY_STATS }),
+    ];
+
+    if (projectId) {
+      invalidations.push(queryClient.invalidateQueries({ queryKey: QUERY_KEYS.PROJECT_TASKS(projectId) }));
+    }
+
+    await Promise.all(invalidations);
+  };
+
   const { data: task, isLoading: taskLoading } = useQuery({
-    queryKey: ['task', taskId],
-    queryFn: async () => {
-      const res = await api.get(`/tasks/${taskId}`);
-      return res.data;
-    },
+    queryKey: QUERY_KEYS.TASK_DETAIL(taskId),
+    queryFn: () => getTaskById(taskId),
   });
 
   // Permissions logic - must come after task is defined by useQuery
@@ -37,43 +51,30 @@ const TaskDetail = ({ taskId, projectId, onClose }) => {
   const allowStatusChange = isCompany || isAssignedToMe;
 
   const { data: comments = [], isLoading: commentsLoading } = useQuery({
-    queryKey: ['comments', taskId],
-    queryFn: async () => {
-      const res = await api.get(`/comments/task/${taskId}`);
-      return res.data;
-    },
+    queryKey: QUERY_KEYS.COMMENTS(taskId),
+    queryFn: () => getTaskComments(taskId),
   });
 
   const updateMutation = useMutation({
-    mutationFn: async (data) => {
-      const res = await api.put(`/tasks/${taskId}`, data);
-      return res.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['task', taskId] });
-      queryClient.invalidateQueries({ queryKey: ['tasks', projectId] });
+    mutationFn: (data) => updateTask(taskId, data),
+    onSuccess: async () => {
+      await invalidateTaskQueries();
       setEditing(false);
     },
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async () => {
-      const res = await api.delete(`/tasks/${taskId}`);
-      return res.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks', projectId] });
+    mutationFn: () => deleteTask(taskId),
+    onSuccess: async () => {
+      await invalidateTaskQueries();
       onClose();
     },
   });
 
   const addCommentMutation = useMutation({
-    mutationFn: async (text) => {
-      const res = await api.post('/comments', { taskId, text });
-      return res.data;
-    },
+    mutationFn: (text) => addTaskComment({ taskId, text }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['comments', taskId] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.COMMENTS(taskId) });
       setCommentText('');
     },
   });

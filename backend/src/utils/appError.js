@@ -1,0 +1,9 @@
+export const createAppError = (message, statusCode = 500) => {
+  const error = new Error(message);
+  error.statusCode = statusCode;
+  return error;
+};
+
+export const throwAppError = (message, statusCode = 500) => {
+  throw createAppError(message, statusCode);
+};
