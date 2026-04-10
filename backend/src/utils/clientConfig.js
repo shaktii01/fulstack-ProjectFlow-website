@@ -1,4 +1,9 @@
-const DEV_FRONTEND_ORIGINS = ['http://localhost:5173', 'http://localhost:3000'];
+const DEV_FRONTEND_ORIGINS = [
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+];
 
 const normalizeUrl = (value = '') => value.trim().replace(/\/+$/, '');
 
@@ -11,13 +16,17 @@ const parseUrlList = (...values) =>
   )];
 
 const getAllowedOrigins = () => {
-  const configuredOrigins = parseUrlList(process.env.FRONTEND_URL, process.env.FRONTEND_URLS);
+  const configuredOrigins = parseUrlList(
+    process.env.FRONTEND_URL,
+    process.env.FRONTEND_URL_ALT,
+    process.env.FRONTEND_URLS
+  );
 
-  if (configuredOrigins.length > 0) {
-    return configuredOrigins;
+  if (process.env.NODE_ENV !== 'production') {
+    return [...new Set([...configuredOrigins, ...DEV_FRONTEND_ORIGINS])];
   }
 
-  return process.env.NODE_ENV === 'production' ? [] : DEV_FRONTEND_ORIGINS;
+  return configuredOrigins;
 };
 
 const getPrimaryFrontendUrl = () =>

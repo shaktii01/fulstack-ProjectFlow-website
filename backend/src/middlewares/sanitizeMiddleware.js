@@ -8,29 +8,32 @@ const isPlainObject = (value) =>
 const isUnsafeKey = (key) =>
   RESERVED_KEYS.has(key) || key.startsWith('$') || key.includes('.');
 
-const sanitizeValue = (value) => {
+const sanitizeInPlace = (value) => {
   if (Array.isArray(value)) {
-    return value.map(sanitizeValue);
+    for (const item of value) {
+      sanitizeInPlace(item);
+    }
+    return;
   }
 
   if (!isPlainObject(value)) {
-    return value;
+    return;
   }
 
-  return Object.entries(value).reduce((accumulator, [key, nestedValue]) => {
+  for (const [key, nestedValue] of Object.entries(value)) {
     if (isUnsafeKey(key)) {
-      return accumulator;
+      delete value[key];
+      continue;
     }
 
-    accumulator[key] = sanitizeValue(nestedValue);
-    return accumulator;
-  }, {});
+    sanitizeInPlace(nestedValue);
+  }
 };
 
 const sanitizeRequest = (req, res, next) => {
-  req.body = sanitizeValue(req.body);
-  req.query = sanitizeValue(req.query);
-  req.params = sanitizeValue(req.params);
+  sanitizeInPlace(req.body);
+  sanitizeInPlace(req.query);
+  sanitizeInPlace(req.params);
   next();
 };
 
