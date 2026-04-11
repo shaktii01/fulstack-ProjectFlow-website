@@ -2,11 +2,12 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import useAuthStore from '@/store/authStore';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import RefreshButton from '@/components/ui/refresh-button';
-import { FolderKanban, CheckCircle, Clock, ListTodo, TrendingUp, ArrowRight, AlertCircle, CalendarClock } from 'lucide-react';
+import { FolderKanban, CheckCircle, Clock, ListTodo, AlertCircle } from 'lucide-react';
 import StatCard from '@/components/dashboard/StatCard';
+import EmployeeProgress from '@/components/dashboard/EmployeeProgress';
+import EmployeeFocusToday from '@/components/dashboard/EmployeeFocusToday';
+import EmployeeRecentTasks from '@/components/dashboard/EmployeeRecentTasks';
 import { getProjects } from '@/services/projectService';
 import { getTasks } from '@/services/taskService';
 import { QUERY_KEYS } from '@/constants/queryKeys';
@@ -135,118 +136,22 @@ const EmployeeDashboard = () => {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <TrendingUp className="h-4 w-4" /> My Progress
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="text-4xl font-bold">{completionRate}%</div>
-            <div className="mt-3 h-2.5 w-full rounded-full bg-muted">
-              <div
-                className="h-2.5 rounded-full bg-primary transition-all duration-500"
-                style={{ width: `${completionRate}%` }}
-              />
-            </div>
-            <div className="mt-2 flex justify-between text-xs text-muted-foreground">
-              <span>{doneCount} completed</span>
-              <span>{myTasks.length - doneCount} remaining</span>
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-muted-foreground">In review</span>
-                <span className="font-medium">{reviewCount}</span>
-              </div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-muted-foreground">Due soon</span>
-                <span className="font-medium">{dueSoonCount}</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <EmployeeProgress
+          completionRate={completionRate}
+          doneCount={doneCount}
+          totalCount={myTasks.length}
+          reviewCount={reviewCount}
+          dueSoonCount={dueSoonCount}
+        />
 
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <CalendarClock className="h-4 w-4" /> Focus Today
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-center justify-between rounded-md border bg-muted/30 px-3 py-2">
-              <span className="text-sm text-muted-foreground">To do now</span>
-              <span className="font-semibold">{todoCount}</span>
-            </div>
-            <div className="flex items-center justify-between rounded-md border bg-muted/30 px-3 py-2">
-              <span className="text-sm text-muted-foreground">In progress</span>
-              <span className="font-semibold">{inProgressCount}</span>
-            </div>
-            <div className="flex items-center justify-between rounded-md border bg-muted/30 px-3 py-2">
-              <span className="text-sm text-muted-foreground">Overdue</span>
-              <span className="font-semibold text-destructive">{overdueCount}</span>
-            </div>
-            <p className="text-xs text-muted-foreground">Open tasks assigned to you</p>
-            <p className="text-2xl font-bold">{myTasks.length}</p>
-          </CardContent>
-        </Card>
+        <EmployeeFocusToday
+          todoCount={todoCount}
+          inProgressCount={inProgressCount}
+          overdueCount={overdueCount}
+          totalCount={myTasks.length}
+        />
 
-        <Card className="lg:col-span-3">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base">Recent Tasks</CardTitle>
-              <button onClick={() => navigate(ROUTE_PATHS.EMPLOYEE_TASKS)} className="flex items-center gap-1 text-xs text-primary hover:underline">
-                View all <ArrowRight className="h-3 w-3" />
-              </button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-              </div>
-            ) : recentTasks.length === 0 ? (
-              <p className="py-8 text-center text-sm text-muted-foreground">No tasks assigned to you yet.</p>
-            ) : (
-              <div className="space-y-2">
-                {recentTasks.map((task) => (
-                  <div
-                    key={task._id}
-                    className="flex cursor-pointer items-center justify-between rounded-lg bg-muted/30 p-3 transition-colors hover:bg-muted/50"
-                    onClick={() => navigate(ROUTE_PATHS.EMPLOYEE_TASKS)}
-                  >
-                    <div className="flex min-w-0 flex-1 items-center gap-3">
-                      <div
-                        className={`h-2.5 w-2.5 shrink-0 rounded-full ${
-                          task.status === 'done'
-                            ? 'bg-emerald-400'
-                            : task.status === 'in_progress'
-                              ? 'bg-amber-400'
-                              : task.status === 'review'
-                                ? 'bg-blue-400'
-                                : 'bg-muted-foreground/30'
-                        }`}
-                      />
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-medium">{task.title}</p>
-                        <p className="text-xs text-muted-foreground">{task.project?.name}</p>
-                      </div>
-                    </div>
-                    <div className="ml-2 flex shrink-0 items-center gap-2">
-                      {task.dueDate && (
-                        <span className="text-[10px] text-muted-foreground">
-                          {new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                        </span>
-                      )}
-                      <Badge variant={task.priority === 'high' || task.priority === 'urgent' ? 'destructive' : 'secondary'} className="text-[10px] capitalize">
-                        {task.priority}
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <EmployeeRecentTasks recentTasks={recentTasks} isLoading={isLoading} />
       </div>
     </div>
   );

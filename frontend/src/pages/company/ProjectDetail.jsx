@@ -4,15 +4,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import useAuthStore from '@/store/authStore';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import RefreshButton from '@/components/ui/refresh-button';
-import UserAvatar from '@/components/ui/user-avatar';
+import { Plus } from 'lucide-react';
 import TaskDetailModal from '@/components/tasks/TaskDetailModal';
 import CreateTaskModal from '@/components/projects/CreateTaskModal';
 import EditProjectModal from '@/components/projects/EditProjectModal';
 import AddMemberModal from '@/components/projects/AddMemberModal';
 import KanbanBoard from '@/components/projects/KanbanBoard';
-import { ArrowLeft, Plus, Users, Calendar, Trash2 } from 'lucide-react';
+import ProjectHeader from '@/components/projects/ProjectHeader';
+import ProjectInfoBar from '@/components/projects/ProjectInfoBar';
 import { getCompanyEmployees } from '@/services/companyService';
 import { deleteProject, getProjectById } from '@/services/projectService';
 import { getTasks } from '@/services/taskService';
@@ -102,91 +101,21 @@ const ProjectDetail = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-4">
-        <button onClick={() => navigate(isCompany ? ROUTE_PATHS.COMPANY_PROJECTS : ROUTE_PATHS.EMPLOYEE_PROJECTS)} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors w-fit">
-          <ArrowLeft className="h-4 w-4" /> Back to Projects
-        </button>
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <div className="flex flex-wrap items-center gap-3">
-              <Badge variant="outline" className="font-mono">{project.code}</Badge>
-              <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">{project.name}</h2>
-            </div>
-            {project.description && <p className="text-muted-foreground mt-1">{project.description}</p>}
-          </div>
-          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-            <RefreshButton
-              onRefresh={refreshPage}
-              isRefreshing={isRefreshing}
-              className="w-full sm:w-auto"
-            />
-            {isCompany && (
-              <>
-              <Button variant="outline" size="sm" className="w-full sm:w-auto" onClick={() => setEditProjectOpen(true)}>Edit</Button>
-              <Button variant="outline" size="sm" className="w-full sm:w-auto" onClick={handleDeleteProject}><Trash2 className="h-4 w-4 text-destructive" /></Button>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
+      <ProjectHeader
+        project={project}
+        isCompany={isCompany}
+        refreshPage={refreshPage}
+        isRefreshing={isRefreshing}
+        onBack={() => navigate(isCompany ? ROUTE_PATHS.COMPANY_PROJECTS : ROUTE_PATHS.EMPLOYEE_PROJECTS)}
+        onEdit={() => setEditProjectOpen(true)}
+        onDelete={handleDeleteProject}
+      />
 
-      {/* Members + Info Bar */}
-      <div className="flex flex-wrap gap-4">
-        <Card className="min-w-0 flex-1">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">Members ({project.members?.length || 0})</span>
-              </div>
-              {isCompany && (
-                <Button variant="ghost" size="sm" onClick={() => setAddMemberOpen(true)}>
-                  <Plus className="h-3.5 w-3.5" />
-                </Button>
-              )}
-            </div>
-            <div className="flex flex-wrap gap-2 mt-3">
-              {project.members?.map((m) => (
-                <div key={m._id} className="flex items-center gap-1.5 bg-muted px-2 py-1 rounded-full text-xs">
-                  <UserAvatar
-                    src={m.profileImage}
-                    name={m.fullName}
-                    alt={m.fullName}
-                    className="h-5 w-5 bg-primary/20 text-[10px]"
-                  />
-                  <span>{m.fullName}</span>
-                </div>
-              ))}
-              {(!project.members || project.members.length === 0) && (
-                <p className="text-xs text-muted-foreground">No members assigned yet.</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-        {project.startDate && (
-          <Card className="w-full sm:w-auto sm:min-w-[150px]">
-            <CardContent className="p-4 flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-              <div className="text-sm">
-                <span className="text-muted-foreground">Start: </span>
-                <span className="font-medium">{new Date(project.startDate).toLocaleDateString()}</span>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-        {project.endDate && (
-          <Card className="w-full sm:w-auto sm:min-w-[150px]">
-            <CardContent className="p-4 flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-              <div className="text-sm">
-                <span className="text-muted-foreground">End: </span>
-                <span className="font-medium">{new Date(project.endDate).toLocaleDateString()}</span>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+      <ProjectInfoBar
+        project={project}
+        isCompany={isCompany}
+        onAddMember={() => setAddMemberOpen(true)}
+      />
 
       {/* Tasks Section */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
