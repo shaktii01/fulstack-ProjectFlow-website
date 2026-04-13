@@ -10,3 +10,14 @@ export const uploadImage = async (file) => {
 
   return data;
 };
+
+export const uploadMedia = async (file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const { data } = await httpClient.post('/upload/media', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+
+  return data;
+};

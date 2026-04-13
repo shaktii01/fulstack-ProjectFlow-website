@@ -20,7 +20,7 @@ const getTaskWithActiveProject = async (taskId) => {
 };
 
 export const addCommentForTask = async (user, payload) => {
-  const { taskId, text, mentions, parentComment } = payload;
+  const { taskId, text, mentions, parentComment, media } = payload;
   const normalizedMentions = Array.isArray(mentions)
     ? [...new Set(mentions.map((mentionId) => mentionId?.toString()).filter(Boolean))]
     : [];
@@ -36,6 +36,11 @@ export const addCommentForTask = async (user, payload) => {
     if (!isAssigned) {
       throwAppError('You can only comment on tasks assigned to you', 403);
     }
+  }
+
+  // Ensure there is at least text or media
+  if ((!text || !text.trim()) && (!media || media.length === 0)) {
+    throwAppError('Comment must have text or media', 400);
   }
 
   let validParentComment = null;
@@ -71,6 +76,7 @@ export const addCommentForTask = async (user, payload) => {
     project: projectDoc._id,
     user: user._id,
     text,
+    media: media || [],
     mentions: validMentions,
     parentComment: validParentComment?._id || null,
   });
@@ -111,5 +117,5 @@ export const listTaskCommentsByAccess = async (user, taskId) => {
   return Comment.find({ task: taskId, isDeleted: false })
     .populate('user', 'fullName profileImage role')
     .populate('mentions', 'fullName')
-    .sort({ createdAt: 1 });
+    .sort({ createdAt: -1 });
 };

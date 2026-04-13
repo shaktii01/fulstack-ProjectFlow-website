@@ -1,6 +1,6 @@
 import asyncHandler from 'express-async-handler';
 import {
-  archiveCompanyProject,
+  deleteCompanyProject,
   createProjectForCompany,
   getProjectByUserAccess,
   listProjectsByUserRole,
@@ -31,7 +31,7 @@ const updateProject = asyncHandler(async (req, res) => {
 });
 
 const deleteProject = asyncHandler(async (req, res) => {
-  await archiveCompanyProject(req.params.id, req.user._id);
+  await deleteCompanyProject(req.params.id, req.user._id);
   res.json({ message: 'Project deleted successfully' });
 });
 

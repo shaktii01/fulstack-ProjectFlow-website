@@ -28,3 +28,18 @@ export const uploadProfileImage = async ({ userId, fileBuffer }) => {
     useUniqueFileName: true,
   });
 };
+
+export const uploadMedia = async ({ userId, fileBuffer, originalName }) => {
+  const imagekit = getImagekit();
+  const timestamp = Date.now();
+  // Sanitize originalName or just use it as part of the new name
+  const sanitizedName = originalName ? originalName.replace(/[^a-zA-Z0-9.-]/g, '_') : 'file';
+  const fileName = `media_${userId}_${timestamp}_${sanitizedName}`;
+
+  return imagekit.upload({
+    file: fileBuffer,
+    fileName,
+    folder: '/projectflow/media',
+    useUniqueFileName: true,
+  });
+};

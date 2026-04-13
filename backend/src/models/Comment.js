@@ -19,9 +19,16 @@ const commentSchema = new mongoose.Schema(
     },
     text: {
       type: String,
-      required: [true, 'Comment text is required'],
+      required: false, // Make text optional if media is provided
       trim: true,
     },
+    media: [
+      {
+        url: { type: String, required: true },
+        type: { type: String, enum: ['image', 'video', 'pdf'], required: true },
+        name: { type: String },
+      }
+    ],
     mentions: [
       {
         type: mongoose.Schema.Types.ObjectId,

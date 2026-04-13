@@ -61,9 +61,9 @@ export const listProjectsByUserRole = async (user) => {
   let query = {};
 
   if (user.role === 'company') {
-    query = { company: user._id, isActive: true };
+    query = { company: user._id };
   } else if (user.role === 'employee') {
-    query = { members: user._id, isActive: true };
+    query = { members: user._id };
   }
 
   return Project.find(query)
@@ -76,7 +76,7 @@ export const getProjectByUserAccess = async (projectId, user) => {
     .populate('members', 'fullName email profileImage designation')
     .populate('createdBy', 'fullName');
 
-  if (!project || !project.isActive || project.isArchived) {
+  if (!project) {
     throwAppError('Project not found', 404);
   }
 
@@ -97,7 +97,7 @@ export const getProjectByUserAccess = async (projectId, user) => {
 export const updateCompanyProject = async (projectId, companyId, payload) => {
   const project = await Project.findById(projectId);
 
-  if (!project || !project.isActive || project.isArchived) {
+  if (!project) {
     throwAppError('Project not found', 404);
   }
 
@@ -121,10 +121,10 @@ export const updateCompanyProject = async (projectId, companyId, payload) => {
   }).populate('members', 'fullName email profileImage designation');
 };
 
-export const archiveCompanyProject = async (projectId, companyId) => {
+export const deleteCompanyProject = async (projectId, companyId) => {
   const project = await Project.findById(projectId);
 
-  if (!project || !project.isActive || project.isArchived) {
+  if (!project) {
     throwAppError('Project not found', 404);
   }
 
@@ -132,17 +132,8 @@ export const archiveCompanyProject = async (projectId, companyId) => {
     throwAppError('Not authorized to delete this project', 403);
   }
 
-  project.isArchived = true;
-  project.isActive = false;
-  await project.save();
+  await Project.findByIdAndDelete(projectId);
 
-  await Task.updateMany(
-    { project: project._id, isDeleted: false },
-    { $set: { isDeleted: true, isActive: false } }
-  );
-
-  await Comment.updateMany(
-    { project: project._id, isDeleted: false },
-    { $set: { isDeleted: true } }
-  );
+  await Task.deleteMany({ project: projectId });
+  await Comment.deleteMany({ project: projectId });
 };

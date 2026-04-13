@@ -18,7 +18,7 @@ const COMPANY_TASK_UPDATABLE_FIELDS = new Set([
 
 const getActiveProjectById = async (projectId) => {
   const project = await Project.findById(projectId);
-  if (!project || !project.isActive || project.isArchived) {
+  if (!project) {
     throwAppError('Project not found', 404);
   }
   return project;
@@ -69,7 +69,7 @@ export const createTaskForProject = async (companyId, payload) => {
 };
 
 export const listTasksByUserRole = async (user, projectId) => {
-  const query = { isDeleted: false };
+  const query = {};
 
   if (projectId) {
     const project = await getActiveProjectById(projectId);
@@ -84,10 +84,10 @@ export const listTasksByUserRole = async (user, projectId) => {
 
     query.project = projectId;
   } else if (user.role === 'company') {
-    const companyProjects = await Project.find({ company: user._id, isActive: true }).select('_id');
+    const companyProjects = await Project.find({ company: user._id }).select('_id');
     query.project = { $in: companyProjects.map((project) => project._id) };
   } else if (user.role === 'employee') {
-    const memberProjects = await Project.find({ members: user._id, isActive: true }).select('_id');
+    const memberProjects = await Project.find({ members: user._id }).select('_id');
     query.project = { $in: memberProjects.map((project) => project._id) };
   }
 
@@ -104,12 +104,12 @@ export const getTaskByUserAccess = async (taskId, user) => {
     .populate('createdBy', 'fullName')
     .populate('project', 'name company members isActive isArchived');
 
-  if (!task || task.isDeleted) {
+  if (!task) {
     throwAppError('Task not found', 404);
   }
 
   const projectDoc = task.project;
-  if (!projectDoc || !projectDoc.isActive || projectDoc.isArchived) {
+  if (!projectDoc) {
     throwAppError('Task not found', 404);
   }
 
@@ -127,12 +127,12 @@ export const getTaskByUserAccess = async (taskId, user) => {
 export const updateTaskByUserAccess = async (taskId, user, payload) => {
   const task = await Task.findById(taskId).populate('project');
 
-  if (!task || task.isDeleted) {
+  if (!task) {
     throwAppError('Task not found', 404);
   }
 
   const projectDoc = task.project;
-  if (!projectDoc || !projectDoc.isActive || projectDoc.isArchived) {
+  if (!projectDoc) {
     throwAppError('Task not found', 404);
   }
 
@@ -196,7 +196,7 @@ export const updateTaskByUserAccess = async (taskId, user, payload) => {
 export const deleteTaskByCompany = async (taskId, companyId) => {
   const task = await Task.findById(taskId).populate('project');
 
-  if (!task || task.isDeleted) {
+  if (!task) {
     throwAppError('Task not found', 404);
   }
 
@@ -204,12 +204,7 @@ export const deleteTaskByCompany = async (taskId, companyId) => {
     throwAppError('Not authorized', 403);
   }
 
-  task.isDeleted = true;
-  task.isActive = false;
-  await task.save();
+  await Task.findByIdAndDelete(taskId);
 
-  await Comment.updateMany(
-    { task: task._id, isDeleted: false },
-    { $set: { isDeleted: true } }
-  );
+  await Comment.deleteMany({ task: taskId });
 };

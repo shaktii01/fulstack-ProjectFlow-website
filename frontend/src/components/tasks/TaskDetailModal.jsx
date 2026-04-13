@@ -9,9 +9,10 @@ import { Select } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import UserAvatar from '@/components/ui/user-avatar';
 import { Dialog, DialogHeader, DialogTitle, DialogContent, DialogFooter, DialogClose } from '../../components/ui/dialog';
-import { Clock, User as UserIcon, MessageSquare, Send, Trash2 } from 'lucide-react';
+import { Clock, User as UserIcon, MessageSquare, Send, Trash2, Paperclip, X, FileText, Image as ImageIcon, Video, Download } from 'lucide-react';
 import { getTaskComments, addTaskComment } from '@/services/commentService';
 import { getTaskById, updateTask, deleteTask } from '@/services/taskService';
+import { uploadMedia } from '@/services/uploadService';
 import { QUERY_KEYS } from '@/constants/queryKeys';
 
 const priorityColors = { low: 'info', medium: 'warning', high: 'destructive', urgent: 'destructive' };
@@ -25,6 +26,8 @@ const TaskDetail = ({ taskId, projectId, onClose }) => {
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState({});
   const [commentText, setCommentText] = useState('');
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [isUploading, setIsUploading] = useState(false);
 
   const invalidateTaskQueries = async () => {
     const invalidations = [
@@ -72,11 +75,16 @@ const TaskDetail = ({ taskId, projectId, onClose }) => {
   });
 
   const addCommentMutation = useMutation({
-    mutationFn: (text) => addTaskComment({ taskId, text }),
+    mutationFn: (payload) => addTaskComment({ taskId, ...payload }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.COMMENTS(taskId) });
       setCommentText('');
+      setSelectedFiles([]);
+      setIsUploading(false);
     },
+    onError: () => {
+      setIsUploading(false);
+    }
   });
 
   const handleStatusChange = (newStatus) => {
@@ -104,10 +112,56 @@ const TaskDetail = ({ taskId, projectId, onClose }) => {
     }
   };
 
-  const handleComment = (e) => {
+  const handleComment = async (e) => {
     e.preventDefault();
-    if (!commentText.trim()) return;
-    addCommentMutation.mutate(commentText.trim());
+    if (!commentText.trim() && selectedFiles.length === 0) return;
+
+    try {
+      setIsUploading(true);
+      let mediaArray = [];
+      
+      if (selectedFiles.length > 0) {
+        const uploadPromises = selectedFiles.map(file => uploadMedia(file));
+        const results = await Promise.all(uploadPromises);
+        mediaArray = results.map(res => ({
+          url: res.url,
+          type: res.type,
+          name: res.name
+        }));
+      }
+
+      addCommentMutation.mutate({ 
+        text: commentText.trim(),
+        media: mediaArray
+      });
+    } catch (error) {
+      console.error('Failed to upload files:', error);
+      setIsUploading(false);
+    }
+  };
+
+  const handleFileChange = (e) => {
+    if (e.target.files) {
+      const filesArray = Array.from(e.target.files);
+      const validFiles = filesArray.filter(f => 
+        f.type.startsWith('image/') || 
+        f.type.startsWith('video/') || 
+        f.type === 'application/pdf'
+      );
+      
+      const newFiles = [...selectedFiles, ...validFiles];
+      if (newFiles.length > 5) {
+        alert('You can only attach up to 5 files at once.');
+        return;
+      }
+      
+      setSelectedFiles(newFiles);
+    }
+    e.target.value = null; // reset input
+  };
+
+  const removeFile = (index) => {
+    setSelectedFiles(selectedFiles.filter((_, i) => i !== index));
   };
 
   return (
@@ -264,21 +318,72 @@ const TaskDetail = ({ taskId, projectId, onClose }) => {
                             </span>
                           </div>
                           <p className="text-sm mt-0.5 whitespace-pre-wrap break-words">{c.text}</p>
+                          {c.media && c.media.length > 0 && (
+                            <div className="grid grid-cols-2 gap-2 mt-2 max-w-sm">
+                              {c.media.map((item, i) => (
+                                <div key={i} className="relative rounded overflow-hidden border bg-muted/30">
+                                  {item.type === 'image' && (
+                                    <a href={item.url} target="_blank" rel="noreferrer">
+                                      <img src={item.url} alt={item.name} className="w-full h-24 object-cover hover:opacity-90" />
+                                    </a>
+                                  )}
+                                  {item.type === 'video' && (
+                                    <video src={item.url} controls className="w-full h-24 object-cover" />
+                                  )}
+                                  {item.type === 'pdf' && (
+                                    <a href={item.url} target="_blank" rel="noreferrer" className="flex flex-col items-center justify-center h-24 p-2 text-center hover:bg-muted/50">
+                                      <FileText className="h-6 w-6 text-destructive mb-1" />
+                                      <span className="text-[10px] truncate w-full" title={item.name}>{item.name || 'Document.pdf'}</span>
+                                    </a>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </div>
                     ))
                   )}
                 </div>
 
+                {selectedFiles.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {selectedFiles.map((file, i) => (
+                      <div key={i} className="flex items-center gap-1.5 bg-muted/50 px-2 py-1.5 rounded-md border text-xs relative max-w-[150px]">
+                        {file.type.startsWith('image/') ? <ImageIcon className="h-3 w-3 shrink-0" /> : file.type.startsWith('video/') ? <Video className="h-3 w-3 shrink-0" /> : <FileText className="h-3 w-3 shrink-0 text-destructive" />}
+                        <span className="truncate flex-1">{file.name}</span>
+                        <button type="button" onClick={() => removeFile(i)} className="text-muted-foreground hover:text-foreground shrink-0 rounded-full bg-background border ml-1">
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <form onSubmit={handleComment} className="flex flex-col gap-2 sm:flex-row">
-                  <Input
-                    value={commentText}
-                    onChange={(e) => setCommentText(e.target.value)}
-                    placeholder="Write a comment..."
-                    className="flex-1"
-                  />
-                  <Button type="submit" size="icon" className="w-full sm:w-10" disabled={addCommentMutation.isPending || !commentText.trim()}>
-                    <Send className="h-4 w-4" />
+                  <div className="relative flex-1">
+                    <Input
+                      value={commentText}
+                      onChange={(e) => setCommentText(e.target.value)}
+                      placeholder="Write a comment..."
+                      className="pr-10"
+                    />
+                    <div className="absolute right-1 top-1 bottom-1">
+                      <label htmlFor="media-upload" className="flex items-center justify-center h-full px-2 cursor-pointer text-muted-foreground hover:text-foreground hover:bg-muted rounded-sm transition-colors">
+                        <Paperclip className="h-4 w-4" />
+                      </label>
+                      <input 
+                        id="media-upload" 
+                        type="file" 
+                        multiple 
+                        accept="image/*,video/*,application/pdf" 
+                        className="hidden" 
+                        onChange={handleFileChange} 
+                        disabled={isUploading}
+                      />
+                    </div>
+                  </div>
+                  <Button type="submit" size="icon" className="w-full sm:w-10" disabled={isUploading || addCommentMutation.isPending || (!commentText.trim() && selectedFiles.length === 0)}>
+                    {isUploading ? <span className="animate-spin text-xs">...</span> : <Send className="h-4 w-4" />}
                   </Button>
                 </form>
               </div>
