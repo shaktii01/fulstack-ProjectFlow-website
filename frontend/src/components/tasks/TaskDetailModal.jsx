@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import UserAvatar from '@/components/ui/user-avatar';
 import { Dialog, DialogHeader, DialogTitle, DialogContent, DialogFooter, DialogClose } from '../../components/ui/dialog';
 import { Clock, User as UserIcon, MessageSquare, Send, Trash2, Paperclip, X, FileText, Image as ImageIcon, Video, Download } from 'lucide-react';
-import { getTaskComments, addTaskComment } from '@/services/commentService';
+import { getTaskComments, addTaskComment, deleteComment, deleteCommentMedia } from '@/services/commentService';
 import { getTaskById, updateTask, deleteTask } from '@/services/taskService';
 import { uploadMedia } from '@/services/uploadService';
 import { QUERY_KEYS } from '@/constants/queryKeys';
@@ -87,6 +87,20 @@ const TaskDetail = ({ taskId, projectId, onClose }) => {
     }
   });
 
+  const deleteCommentMutation = useMutation({
+    mutationFn: (commentId) => deleteComment(commentId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.COMMENTS(taskId) });
+    },
+  });
+
+  const deleteMediaMutation = useMutation({
+    mutationFn: ({ commentId, fileId }) => deleteCommentMedia(commentId, fileId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.COMMENTS(taskId) });
+    },
+  });
+
   const handleStatusChange = (newStatus) => {
     updateMutation.mutate({ status: newStatus });
   };
@@ -98,6 +112,7 @@ const TaskDetail = ({ taskId, projectId, onClose }) => {
       priority: task.priority || 'medium',
       status: task.status || 'todo',
       dueDate: task.dueDate ? task.dueDate.split('T')[0] : '',
+      assignedTo: task.assignedTo?._id || '',
     });
     setEditing(true);
   };
@@ -126,7 +141,8 @@ const TaskDetail = ({ taskId, projectId, onClose }) => {
         mediaArray = results.map(res => ({
           url: res.url,
           type: res.type,
-          name: res.name
+          name: res.name,
+          fileId: res.fileId // Added fileId for deletion capability
         }));
       }
 
@@ -243,7 +259,42 @@ const TaskDetail = ({ taskId, projectId, onClose }) => {
                     <UserIcon className="h-4 w-4 text-muted-foreground" />
                     <div>
                       <p className="text-xs text-muted-foreground">Assigned To</p>
-                      <p className="font-medium">{task.assignedTo.fullName}</p>
+                      {editing && isCompany ? (
+                        <Select
+                          value={editForm.assignedTo}
+                          onChange={(e) => setEditForm({ ...editForm, assignedTo: e.target.value })}
+                          className="h-8 text-xs mt-0.5"
+                        >
+                          <option value="">Unassigned</option>
+                          {task.project?.members?.map((member) => (
+                            <option key={member._id} value={member._id}>
+                              {member.fullName}
+                            </option>
+                          ))}
+                        </Select>
+                      ) : (
+                        <p className="font-medium">{task.assignedTo?.fullName || 'Unassigned'}</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {!task.assignedTo && editing && isCompany && (
+                  <div className="flex items-center gap-2">
+                    <UserIcon className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Assigned To</p>
+                      <Select
+                        value={editForm.assignedTo}
+                        onChange={(e) => setEditForm({ ...editForm, assignedTo: e.target.value })}
+                        className="h-8 text-xs mt-0.5"
+                      >
+                        <option value="">Unassigned</option>
+                        {task.project?.members?.map((member) => (
+                          <option key={member._id} value={member._id}>
+                            {member.fullName}
+                          </option>
+                        ))}
+                      </Select>
                     </div>
                   </div>
                 )}
@@ -303,7 +354,7 @@ const TaskDetail = ({ taskId, projectId, onClose }) => {
                     <p className="text-xs text-muted-foreground text-center py-3">No comments yet. Be the first to comment!</p>
                   ) : (
                     comments.map((c) => (
-                      <div key={c._id} className="flex gap-2.5">
+                      <div key={c._id} className="flex gap-2.5 group/comment">
                         <UserAvatar
                           src={c.user?.profileImage}
                           name={c.user?.fullName}
@@ -311,17 +362,28 @@ const TaskDetail = ({ taskId, projectId, onClose }) => {
                           className="mt-0.5 h-7 w-7 text-[10px]"
                         />
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-semibold">{c.user?.fullName}</span>
-                            <span className="text-[10px] text-muted-foreground">
-                              {new Date(c.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                            </span>
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-semibold">{c.user?.fullName}</span>
+                              <span className="text-[10px] text-muted-foreground">
+                                {new Date(c.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            </div>
+                            {(isCompany || c.user?._id === user?._id) && (
+                              <button 
+                                onClick={() => window.confirm('Delete this comment?') && deleteCommentMutation.mutate(c._id)}
+                                className="opacity-0 group-hover/comment:opacity-100 transition-opacity p-1 hover:text-destructive"
+                                title="Delete comment"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </button>
+                            )}
                           </div>
                           <p className="text-sm mt-0.5 whitespace-pre-wrap break-words">{c.text}</p>
                           {c.media && c.media.length > 0 && (
                             <div className="grid grid-cols-2 gap-2 mt-2 max-w-sm">
                               {c.media.map((item, i) => (
-                                <div key={i} className="relative rounded overflow-hidden border bg-muted/30">
+                                <div key={i} className="relative rounded overflow-hidden border bg-muted/30 group/media">
                                   {item.type === 'image' && (
                                     <a href={item.url} target="_blank" rel="noreferrer">
                                       <img src={item.url} alt={item.name} className="w-full h-24 object-cover hover:opacity-90" />
@@ -335,6 +397,15 @@ const TaskDetail = ({ taskId, projectId, onClose }) => {
                                       <FileText className="h-6 w-6 text-destructive mb-1" />
                                       <span className="text-[10px] truncate w-full" title={item.name}>{item.name || 'Document.pdf'}</span>
                                     </a>
+                                  )}
+                                  {(isCompany || c.user?._id === user?._id) && item.fileId && (
+                                    <button 
+                                      onClick={() => window.confirm('Delete this media?') && deleteMediaMutation.mutate({ commentId: c._id, fileId: item.fileId })}
+                                      className="absolute top-1 right-1 p-1 bg-background/80 rounded-full opacity-0 group-hover/media:opacity-100 transition-opacity hover:text-destructive backdrop-blur-sm"
+                                      title="Delete media"
+                                    >
+                                      <X className="h-3 w-3" />
+                                    </button>
                                   )}
                                 </div>
                               ))}

@@ -43,3 +43,15 @@ export const uploadMedia = async ({ userId, fileBuffer, originalName }) => {
     useUniqueFileName: true,
   });
 };
+
+export const deleteMediaFromImageKit = async (fileId) => {
+  if (!fileId) return;
+  const imagekit = getImagekit();
+  try {
+    await imagekit.deleteFile(fileId);
+  } catch (error) {
+    console.error('Failed to delete file from ImageKit:', error);
+    // We don't throw here to avoid failing the whole request if ImageKit delete fails
+    // (e.g. if file was already deleted manually)
+  }
+};

@@ -2,17 +2,18 @@ import mongoose from 'mongoose';
 import Comment from '../models/Comment.js';
 import Task from '../models/Task.js';
 import Notification from '../models/Notification.js';
+import { deleteMediaFromImageKit } from './uploadService.js';
 import { throwAppError } from '../utils/appError.js';
 
 const getTaskWithActiveProject = async (taskId) => {
   const task = await Task.findById(taskId).populate('project');
 
-  if (!task || task.isDeleted) {
+  if (!task) {
     throwAppError('Task not found', 404);
   }
 
   const projectDoc = task.project;
-  if (!projectDoc || !projectDoc.isActive || projectDoc.isArchived) {
+  if (!projectDoc) {
     throwAppError('Task not found', 404);
   }
 
@@ -53,7 +54,6 @@ export const addCommentForTask = async (user, payload) => {
       _id: parentComment,
       task: task._id,
       project: projectDoc._id,
-      isDeleted: false,
     }).select('_id');
 
     if (!validParentComment) {
@@ -108,14 +108,79 @@ export const listTaskCommentsByAccess = async (user, taskId) => {
   }
 
   if (user.role === 'employee') {
-    const isMember = projectDoc.members.some((member) => member.toString() === user._id.toString());
+    const isMember = projectDoc.members.some((member) => {
+      const memberId = member._id ? member._id.toString() : member.toString();
+      return memberId === user._id.toString();
+    });
     if (!isMember) {
       throwAppError('Not authorized', 403);
     }
   }
 
-  return Comment.find({ task: taskId, isDeleted: false })
+  return Comment.find({ task: taskId })
     .populate('user', 'fullName profileImage role')
     .populate('mentions', 'fullName')
     .sort({ createdAt: -1 });
+};
+
+export const deleteCommentWithMedia = async (user, commentId) => {
+  const comment = await Comment.findById(commentId).populate('project');
+
+  if (!comment) {
+    throwAppError('Comment not found', 404);
+  }
+
+  // Permission check: only author or company owner can delete
+  const isAuthor = comment.user.toString() === user._id.toString();
+  const isCompanyOwner = user.role === 'company' && comment.project.company.toString() === user._id.toString();
+
+  if (!isAuthor && !isCompanyOwner) {
+    throwAppError('Not authorized to delete this comment', 403);
+  }
+
+  // Delete all media from ImageKit
+  if (comment.media && comment.media.length > 0) {
+    const deletePromises = comment.media.map((item) => {
+      if (item.fileId) {
+        return deleteMediaFromImageKit(item.fileId);
+      }
+      return Promise.resolve();
+    });
+    await Promise.all(deletePromises);
+  }
+
+  await Comment.findByIdAndDelete(commentId);
+};
+
+export const deleteMediaItemFromComment = async (user, commentId, fileId) => {
+  const comment = await Comment.findById(commentId).populate('project');
+
+  if (!comment) {
+    throwAppError('Comment not found', 404);
+  }
+
+  // Permission check
+  const isAuthor = comment.user.toString() === user._id.toString();
+  const isCompanyOwner = user.role === 'company' && comment.project.company.toString() === user._id.toString();
+
+  if (!isAuthor && !isCompanyOwner) {
+    throwAppError('Not authorized to modify this comment', 403);
+  }
+
+  const mediaItem = comment.media.find((item) => item.fileId === fileId);
+  if (!mediaItem) {
+    throwAppError('Media item not found in this comment', 404);
+  }
+
+  // Delete from ImageKit
+  await deleteMediaFromImageKit(fileId);
+
+  // Remove from comment document
+  comment.media = comment.media.filter((item) => item.fileId !== fileId);
+  
+  // If comment is now empty (no text and no media), we might want to delete it entirely
+  // but for now let's just save the update.
+  await comment.save();
+  
+  return comment;
 };

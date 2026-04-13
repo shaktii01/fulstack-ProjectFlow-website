@@ -27,6 +27,7 @@ const commentSchema = new mongoose.Schema(
         url: { type: String, required: true },
         type: { type: String, enum: ['image', 'video', 'pdf'], required: true },
         name: { type: String },
+        fileId: { type: String },
       }
     ],
     mentions: [

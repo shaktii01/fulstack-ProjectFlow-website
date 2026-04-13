@@ -25,7 +25,11 @@ const getActiveProjectById = async (projectId) => {
 };
 
 const ensureProjectMember = (project, userId, errorMessage = 'Not authorized') => {
-  const isMember = project.members.some((member) => member.toString() === userId.toString());
+  const isMember = project.members.some((member) => {
+    const memberId = member._id ? member._id.toString() : member.toString();
+    return memberId === userId.toString();
+  });
+
   if (!isMember) {
     throwAppError(errorMessage, 403);
   }
@@ -102,7 +106,14 @@ export const getTaskByUserAccess = async (taskId, user) => {
   const task = await Task.findById(taskId)
     .populate('assignedTo', 'fullName email profileImage')
     .populate('createdBy', 'fullName')
-    .populate('project', 'name company members isActive isArchived');
+    .populate('project', 'name company members isActive isArchived')
+    .populate({
+      path: 'project',
+      populate: {
+        path: 'members',
+        select: 'fullName email profileImage designation'
+      }
+    });
 
   if (!task) {
     throwAppError('Task not found', 404);
